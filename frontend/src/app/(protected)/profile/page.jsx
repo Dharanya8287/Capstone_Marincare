@@ -104,30 +104,31 @@ const ProfilePage = () => {
         }
     }, []);
 
+    async function fetchProfile() {
+        try {
+            const res = await apiCall('get', 'http://localhost:5000/api/profile');
+            if (res?.data) {
+                setUserProfile({
+                    name: res.data.name || '',
+                    email: res.data.email || '',
+                    location: res.data.location || '',
+                    bio: res.data.bio || '',
+                    profileImage: res.data.profileImage || '',
+                    totalItemsCollected: res.data.totalItemsCollected || 0,
+                    totalChallenges: res.data.totalChallenges || 0,
+                    impactScore: res.data.impactScore || 0,
+                    badges: res.data.badges || [],
+                    joinedChallenges: res.data.joinedChallenges || [],
+                    createdAt: res.data.createdAt || null,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load profile:', error);
+        }
+    }
+
     // Fetch user profile from backend on mount
     useEffect(() => {
-        async function fetchProfile() {
-            try {
-                const res = await apiCall('get', 'http://localhost:5000/api/profile');
-                if (res?.data) {
-                    setUserProfile({
-                        name: res.data.name || '',
-                        email: res.data.email || '',
-                        location: res.data.location || '',
-                        bio: res.data.bio || '',
-                        profileImage: res.data.profileImage || '',
-                        totalItemsCollected: res.data.totalItemsCollected || 0,
-                        totalChallenges: res.data.totalChallenges || 0,
-                        impactScore: res.data.impactScore || 0,
-                        badges: res.data.badges || [],
-                        joinedChallenges: res.data.joinedChallenges || [],
-                        createdAt: res.data.createdAt || null,
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to load profile:', error);
-            }
-        }
         fetchProfile();
     }, []);
 
@@ -196,10 +197,7 @@ const ProfilePage = () => {
                 profileImage: editProfile.profileImage,
             };
             await apiCall('patch', 'http://localhost:5000/api/profile', updateData);
-            setUserProfile(prev => ({
-                ...prev,
-                ...updateData,
-            }));
+            await fetchProfile(); // Refetch profile to sync latest data
             setIsEditing(false);
             console.log('Profile saved successfully');
         } catch (error) {
@@ -391,6 +389,7 @@ const ProfilePage = () => {
                                                 inputValue={locationInputValue}
                                                 onInputChange={(event, newInputValue) => {
                                                     setLocationInputValue(newInputValue);
+                                                    handleProfileInputChange('location', newInputValue);
                                                 }}
                                                 renderInput={(params) => (
                                                     <TextField

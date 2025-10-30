@@ -1,4 +1,3 @@
-// frontend/src/hooks/useProfile.js
 import { useState, useEffect } from "react";
 import { apiCall } from "@/utils/api";
 
