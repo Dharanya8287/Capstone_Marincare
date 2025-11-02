@@ -8,7 +8,7 @@ import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateR
 
 export const navItems = [
     { label: "Home", path: "/landing", icon: HomeRoundedIcon },
-    { label: "Challenges", path: "/challenge", icon: MilitaryTechRoundedIcon },
+    { label: "Challenges", path: "/challenges", icon: MilitaryTechRoundedIcon },
     { label: "Upload", path: "/upload", icon: AddPhotoAlternateRoundedIcon },
     { label: "Dashboard", path: "/dashboard", icon: DashboardRoundedIcon },
     { label: "Achievements", path: "/achievements", icon: EmojiEventsRoundedIcon },
@@ -16,7 +16,7 @@ export const navItems = [
 
 export const mobileOrder = [
     "/landing",
-    "/challenge",
+    "/challenges",
     "/upload",
     "/dashboard",
     "/achievements",

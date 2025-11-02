@@ -6,7 +6,7 @@ const cleanupSchema = new mongoose.Schema(
         challenge: { type: mongoose.Schema.Types.ObjectId, ref: "Challenge" },
         wasteCategory: { type: mongoose.Schema.Types.ObjectId, ref: "WasteCategory" },
 
-        imageUrl: String, // stored in MongoDB or CDN link
+        imageUrl: String, // stored in MongoDB
         quantity: { type: Number, default: 1 },
 
         location: {

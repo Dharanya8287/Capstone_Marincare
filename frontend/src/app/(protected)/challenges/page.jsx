@@ -32,7 +32,7 @@ import CTASection from "@/components/sections/CTASection";
 import withAuth from "@/components/auth/withAuth";
 
 // Import mock data as fallback
-import { challenges as mockChallenges, mockStats, regions } from "@/data/challenges";
+import { challenges as mockChallenges, mockStats, regions as regionList } from "@/data/challenges";
 
 function ChallengesPage() {
     const [challenges, setChallenges] = useState([]);
@@ -48,25 +48,21 @@ function ChallengesPage() {
     const upcomingScrollRef = useRef(null);
     const completedScrollRef = useRef(null);
 
+    // RegionList
+    const uniqueRegions = ["All", ...new Set(regionList.filter((r) => r && r !== "All"))];
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-
-                try {
-                    const [challengesRes, statsRes] = await Promise.all([
-                        axios.get("/api/challenges"),
-                        axios.get("/api/challenges/stats"),
-                    ]);
-                    setChallenges(challengesRes.data);
-                    setStats(statsRes.data);
-                } catch (apiError) {
-                    console.log("Using mock data:", apiError.message);
-                    setChallenges(mockChallenges);
-                    setStats(mockStats);
-                }
-            } catch (error) {
-                console.error("Failed to fetch challenges data:", error);
+                const [challengesRes, statsRes] = await Promise.all([
+                    axios.get("/api/challenges"),
+                    axios.get("/api/challenges/stats"),
+                ]);
+                setChallenges(challengesRes.data || []);
+                setStats(statsRes.data || mockStats);
+            } catch (apiError) {
+                console.warn("Using mock data:", apiError.message);
                 setChallenges(mockChallenges);
                 setStats(mockStats);
             } finally {
@@ -76,26 +72,23 @@ function ChallengesPage() {
         fetchData();
     }, []);
 
-    // Filter challenges
+    // Safer filter logic
     const filterChallenges = (challengeList) => {
         let filtered = [...challengeList];
-
         if (selectedRegion !== "All") {
-            filtered = filtered.filter((c) => c.region === selectedRegion);
+            filtered = filtered.filter((c) => c.region?.toLowerCase() === selectedRegion.toLowerCase());
         }
-
         if (selectedStatus !== "All") {
-            filtered = filtered.filter((c) => c.status === selectedStatus);
+            filtered = filtered.filter((c) => c.status?.toLowerCase() === selectedStatus.toLowerCase());
         }
-
         return filtered;
     };
 
-    const activeChallenges = filterChallenges(challenges.filter((c) => c.status === "active"));
-    const upcomingChallenges = filterChallenges(challenges.filter((c) => c.status === "upcoming"));
-    const completedChallenges = filterChallenges(challenges.filter((c) => c.status === "completed"));
+    const activeChallenges = filterChallenges(challenges.filter((c) => c.status?.toLowerCase() === "active"));
+    const upcomingChallenges = filterChallenges(challenges.filter((c) => c.status?.toLowerCase() === "upcoming"));
+    const completedChallenges = filterChallenges(challenges.filter((c) => c.status?.toLowerCase() === "completed"));
 
-    // Scroll function
+    // Scroll handler
     const scroll = (ref, direction) => {
         if (ref.current) {
             const scrollAmount = 400;
@@ -106,13 +99,13 @@ function ChallengesPage() {
         }
     };
 
-    // Scrollable Row Component
-    const ScrollableRow = ({ title, icon, challenges, scrollRef, iconColor }) => {
+    // Scrollable section
+    const ScrollableRow = ({ title, icon, challenges, scrollRef }) => {
         if (challenges.length === 0) return null;
 
         return (
             <Box sx={{ mb: 6 }}>
-                {/* Section Header */}
+                {/* Header */}
                 <Box
                     sx={{
                         display: "flex",
@@ -135,7 +128,6 @@ function ChallengesPage() {
                         </Typography>
                     </Box>
 
-                    {/* Navigation Arrows */}
                     {!isMobile && (
                         <Box sx={{ display: "flex", gap: 1 }}>
                             <IconButton
@@ -160,7 +152,7 @@ function ChallengesPage() {
                     )}
                 </Box>
 
-                {/* Scrollable Container */}
+                {/* Cards */}
                 <Box
                     ref={scrollRef}
                     sx={{
@@ -195,15 +187,12 @@ function ChallengesPage() {
     return (
         <Box sx={PageContainerStyle}>
             <Container maxWidth="xl">
-                {/* Header Section */}
+                {/* Header */}
                 <Box sx={HeaderBoxStyle}>
                     <Typography variant={isMobile ? "h5" : "h4"} sx={HeaderTitleStyle}>
                         🌊 Cleanup Challenges
                     </Typography>
-                    <Typography
-                        variant={isMobile ? "body2" : "body1"}
-                        sx={HeaderSubtitleStyle}
-                    >
+                    <Typography variant={isMobile ? "body2" : "body1"} sx={HeaderSubtitleStyle}>
                         Join hands in restoring our coastlines — every cleanup counts!
                     </Typography>
                 </Box>
@@ -223,7 +212,7 @@ function ChallengesPage() {
                     <>
                         <StatsCard stats={stats} />
 
-                        {/* Filters Section */}
+                        {/* Filters */}
                         <Box
                             sx={{
                                 mb: 5,
@@ -239,7 +228,7 @@ function ChallengesPage() {
                                 gap: 2,
                             }}
                         >
-                            {/* Region Dropdown */}
+                            {/* Region */}
                             <FormControl sx={{ minWidth: 200 }}>
                                 <InputLabel>Filter by Region</InputLabel>
                                 <Select
@@ -247,7 +236,7 @@ function ChallengesPage() {
                                     label="Filter by Region"
                                     onChange={(e) => setSelectedRegion(e.target.value)}
                                 >
-                                    {["All", ...regions].map((region) => (
+                                    {uniqueRegions.map((region) => (
                                         <MenuItem key={region} value={region}>
                                             {region}
                                         </MenuItem>
@@ -255,7 +244,7 @@ function ChallengesPage() {
                                 </Select>
                             </FormControl>
 
-                            {/* Status Dropdown */}
+                            {/* Status */}
                             <FormControl sx={{ minWidth: 200 }}>
                                 <InputLabel>Filter by Status</InputLabel>
                                 <Select
@@ -263,16 +252,16 @@ function ChallengesPage() {
                                     label="Filter by Status"
                                     onChange={(e) => setSelectedStatus(e.target.value)}
                                 >
-                                    {["All", "active", "upcoming", "completed"].map((status) => (
+                                    {["All", "Active", "Upcoming", "Completed"].map((status) => (
                                         <MenuItem key={status} value={status}>
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                                            {status}
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
                         </Box>
 
-                        {/* Challenge Sections */}
+                        {/* Sections */}
                         <ScrollableRow
                             title="Active Challenges"
                             icon={<TrendingUpIcon sx={{ fontSize: 28, color: "#10b981" }} />}
@@ -294,7 +283,6 @@ function ChallengesPage() {
                             scrollRef={completedScrollRef}
                         />
 
-                        {/* CTA Section */}
                         <CTASection />
                     </>
                 )}

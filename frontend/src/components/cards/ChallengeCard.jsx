@@ -12,9 +12,11 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PeopleIcon from "@mui/icons-material/People";
+import { useRouter } from "next/navigation";
 
 const ChallengeCard = ({ challenge }) => {
     const {
+        _id,
         title,
         bannerImage,
         locationName,
@@ -25,6 +27,17 @@ const ChallengeCard = ({ challenge }) => {
         startDate,
         endDate,
     } = challenge;
+
+    const router = useRouter();
+
+    const handleCardClick = () => {
+        router.push(`/challenges/${_id}`);  // FIXED: Changed from /challenges/ to /challenges/
+    };
+
+    const handleButtonClick = (e) => {
+        e.stopPropagation(); // Prevent bubbling to Card click
+        router.push(`/challenges/${_id}`);  // FIXED: Changed from /challenges/ to /challenges/
+    };
 
     const progress = goal > 0 ? Math.min((totalTrashCollected / goal) * 100, 100) : 0;
 
@@ -51,13 +64,11 @@ const ChallengeCard = ({ challenge }) => {
         return "#f59e0b";
     };
 
-    const handleJoinClick = () => {
-        alert(`You have joined the "${title}" challenge! 🎉`);
-    };
-
     return (
         <Card
+            onClick={handleCardClick}
             sx={{
+                cursor: "pointer",
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
@@ -164,12 +175,10 @@ const ChallengeCard = ({ challenge }) => {
                             {totalVolunteers.toLocaleString()} volunteers
                         </Typography>
                     </Box>
-
                     {status === "active" && (
                         <Button
                             variant="contained"
                             size="small"
-                            onClick={handleJoinClick}
                             sx={{
                                 backgroundColor: "#0ea5e9",
                                 color: "white",
@@ -181,7 +190,9 @@ const ChallengeCard = ({ challenge }) => {
                                 "&:hover": {
                                     backgroundColor: "#0284c7",
                                 },
+                                cursor: "pointer",
                             }}
+                            onClick={handleButtonClick}
                         >
                             Join
                         </Button>

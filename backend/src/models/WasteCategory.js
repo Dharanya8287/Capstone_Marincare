@@ -4,7 +4,7 @@ const wasteCategorySchema = new mongoose.Schema(
     {
         name: { type: String, required: true },
         description: String,
-        icon: String, // optional UI icon or image
+        icon: String,
         environmentalImpactScore: { type: Number, default: 1 },
     },
     { timestamps: true }

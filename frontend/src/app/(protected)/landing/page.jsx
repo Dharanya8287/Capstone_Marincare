@@ -90,7 +90,7 @@ function LandingPage() {
                             desc: "Instantly identifies waste types from photos using advanced AI technology.",
                         },
                         {
-                            img: "/images/challenge.png",
+                            img: "/images/challenges.png",
                             title: "Local Challenges",
                             desc: "Join cleanup events in your community and make a real impact.",
                         },

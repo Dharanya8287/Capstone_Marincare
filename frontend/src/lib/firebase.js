@@ -1,5 +1,6 @@
+// lib/firebase.js
 import { initializeApp, getApps } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,6 +12,17 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
+// Initialize Firebase app once
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+
+// Initialize Auth
 export const auth = getAuth(app);
+
+// 👇 Force session-only persistence so closing the browser logs the user out
+if (typeof window !== "undefined") {
+    setPersistence(auth, browserSessionPersistence)
+        .catch((err) => {
+            // If this ever fails, you still get default persistence; log it for debugging.
+            console.error("Failed to set Firebase session persistence:", err);
+        });
+}

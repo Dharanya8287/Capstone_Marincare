@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/', getChallenges);
 router.get('/stats', getChallengeStats);
 
-// Protected route: Only authenticated users can create a challenge.
+// Protected route: Only authenticated users can create a challenges.
 // FIX: Use 'verifyFirebaseToken' as the middleware here.
 router.post('/', verifyFirebaseToken);
 

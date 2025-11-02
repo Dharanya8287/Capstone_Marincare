@@ -1,4 +1,4 @@
-// app/(protected)/challenge/challenge.styles.js
+// app/(protected)/challenges/challenges.styles.js
 
 // General Page Styles
 export const PageContainerStyle = {
