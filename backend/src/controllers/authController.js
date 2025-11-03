@@ -1,6 +1,17 @@
 import admin from "../config/firebase.js";
 import User from "../models/User.js";
 
+// Helper: check Firebase Auth for user by email
+const firebaseEmailExists = async (email) => {
+    try {
+        const userRecord = await admin.auth().getUserByEmail(email);
+        return !!userRecord;
+    } catch (err) {
+        // Firebase throws error if not found
+        return false;
+    }
+};
+
 export const checkEmail = async (req, res) => {
     try {
         const { email } = req.query;
@@ -8,16 +19,24 @@ export const checkEmail = async (req, res) => {
             return res.status(400).json({ exists: false, message: "Email required" });
         }
 
+        // Check MongoDB first
         const user = await User.findOne({ email });
-        if (user) return res.json({ exists: true, message: "Email already registered" });
+        if (user) return res.json({ exists: true, message: "Email already registered (database)" });
+
+        // Check Firebase if not in MongoDB
+        const existsInFirebase = await firebaseEmailExists(email);
+        if (existsInFirebase) {
+            return res.json({ exists: true, message: "Email already registered (Firebase)" });
+        }
 
         res.json({ exists: false, message: "Email available" });
     } catch (error) {
-        console.error("Email check failed");
+        console.error("Email check failed", error);
         res.status(500).json({ exists: false, message: "Server error" });
     }
 };
 
+// ---- YOU WERE MISSING THIS EXPORT ----
 export const syncUser = async (req, res) => {
     try {
         const { idToken } = req.body;

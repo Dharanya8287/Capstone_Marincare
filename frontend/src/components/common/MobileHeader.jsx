@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Typography, IconButton, Menu, MenuItem, Divider } from "@mui/material";
+import { Box, Typography, IconButton, Menu, MenuItem, Divider, Avatar } from "@mui/material";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
 
@@ -73,11 +73,24 @@ export default function MobileHeader() {
 
             <IconButton
                 size="large"
-                aria-label="menu"
+                aria-label="profile menu"
                 onClick={handleMenuOpen}
-                sx={{ ml: 1 }}
+                sx={{
+                    ml: 1,
+                    p: 0.5,
+                }}
             >
-                <MoreVertIcon sx={{ fontSize: 28 }} />
+                <Avatar
+                    sx={{
+                        width: 36,
+                        height: 36,
+                        bgcolor: "#0891b2",
+                        fontSize: 16,
+                        fontWeight: 600,
+                    }}
+                >
+                    <AccountCircleRoundedIcon sx={{ fontSize: 24 }} />
+                </Avatar>
             </IconButton>
 
             <Menu
@@ -92,15 +105,51 @@ export default function MobileHeader() {
                     vertical: "top",
                     horizontal: "right",
                 }}
-                sx={{ zIndex: 1300 }}
+                sx={{
+                    zIndex: 1300,
+                    mt: 1,
+                }}
+                PaperProps={{
+                    sx: {
+                        minWidth: 180,
+                        borderRadius: 2,
+                        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+                    }
+                }}
             >
-                <MenuItem onClick={handleProfile}>
-                    <AccountCircleRoundedIcon sx={{ mr: 1 }} />
-                    Profile
+                <MenuItem
+                    onClick={handleProfile}
+                    sx={{
+                        py: 1.5,
+                        px: 2,
+                        gap: 1.5,
+                        "&:hover": {
+                            bgcolor: "rgba(8, 145, 178, 0.08)",
+                        }
+                    }}
+                >
+                    <AccountCircleRoundedIcon sx={{ fontSize: 22, color: "#0891b2" }} />
+                    <Typography variant="body2" fontWeight={500}>
+                        Profile
+                    </Typography>
                 </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleLogout} sx={{ color: "#ef4444" }}>
-                    Logout
+                <Divider sx={{ my: 0.5 }} />
+                <MenuItem
+                    onClick={handleLogout}
+                    sx={{
+                        py: 1.5,
+                        px: 2,
+                        gap: 1.5,
+                        color: "#ef4444",
+                        "&:hover": {
+                            bgcolor: "rgba(239, 68, 68, 0.08)",
+                        }
+                    }}
+                >
+                    <LogoutRoundedIcon sx={{ fontSize: 22 }} />
+                    <Typography variant="body2" fontWeight={500}>
+                        Logout
+                    </Typography>
                 </MenuItem>
             </Menu>
         </Box>

@@ -14,6 +14,8 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
+  Tooltip,
+  Sector,
 } from 'recharts';
 import {
   RecyclingOutlined,
@@ -70,6 +72,65 @@ const DashboardPage = () => {
     { name: 'Emma Wilson', items: 354, rank: 4, isYou: false },
   ];
 
+  // Custom Tooltip for Line Chart (Monthly Progress)
+  const CustomLineTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box
+          sx={{
+            backgroundColor: '#ffffff',
+            padding: '8px 12px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#1a1a1a', margin: 0 }}>
+            {payload[0].payload.month}
+          </Typography>
+          <Typography sx={{ fontSize: '13px', color: '#0ea5e9', fontWeight: 600, margin: '4px 0 0 0' }}>
+            {payload[0].value} items
+          </Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
+  // Custom Tooltip for Bar Chart
+  const CustomBarTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const total = itemsData.reduce((sum, entry) => sum + entry.count, 0);
+      const percentage = ((payload[0].value / total) * 100).toFixed(1);
+      return (
+        <Box
+          sx={{
+            backgroundColor: '#ffffff',
+            padding: '8px 12px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '6px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          }}
+        >
+          <Typography sx={{ fontSize: '12px', fontWeight: 600, color: '#1a1a1a', margin: 0 }}>
+            {payload[0].payload.type}
+          </Typography>
+          <Typography 
+            sx={{ 
+              fontSize: '13px', 
+              color: payload[0].payload.color, 
+              fontWeight: 600, 
+              margin: '4px 0 0 0' 
+            }}
+          >
+            {payload[0].value} items ({percentage}%)
+          </Typography>
+        </Box>
+      );
+    }
+    return null;
+  };
+
   return (
     <Box sx={styles.container}>
       {/* Header */}
@@ -85,7 +146,7 @@ const DashboardPage = () => {
         {/* Total Items */}
         <Box sx={styles.statCard}>
           <Box sx={{ ...styles.statIcon, backgroundColor: '#e0f2fe' }}>
-            <RecyclingOutlined sx={{ color: '#0284c7', fontSize: '24px' }} />
+            <RecyclingOutlined sx={{ color: '#0284c7', fontSize: '22px' }} />
           </Box>
           <Typography sx={styles.statValue}>427</Typography>
           <Typography sx={styles.statLabel}>Total Items</Typography>
@@ -97,7 +158,7 @@ const DashboardPage = () => {
         {/* Cleanups */}
         <Box sx={styles.statCard}>
           <Box sx={{ ...styles.statIcon, backgroundColor: '#fef3c7' }}>
-            <CalendarTodayOutlined sx={{ color: '#f59e0b', fontSize: '24px' }} />
+            <CalendarTodayOutlined sx={{ color: '#f59e0b', fontSize: '22px' }} />
           </Box>
           <Typography sx={styles.statValue}>12</Typography>
           <Typography sx={styles.statLabel}>Cleanups</Typography>
@@ -106,7 +167,7 @@ const DashboardPage = () => {
         {/* Impact Score */}
         <Box sx={styles.statCard}>
           <Box sx={{ ...styles.statIcon, backgroundColor: '#ddd6fe' }}>
-            <TrendingUpOutlined sx={{ color: '#7c3aed', fontSize: '24px' }} />
+            <TrendingUpOutlined sx={{ color: '#7c3aed', fontSize: '22px' }} />
           </Box>
           <Typography sx={styles.statValue}>8.9k</Typography>
           <Typography sx={styles.statLabel}>Impact Score</Typography>
@@ -118,7 +179,7 @@ const DashboardPage = () => {
         {/* Rank */}
         <Box sx={styles.statCard}>
           <Box sx={{ ...styles.statIcon, backgroundColor: '#fed7aa' }}>
-            <EmojiEventsOutlined sx={{ color: '#ea580c', fontSize: '24px' }} />
+            <EmojiEventsOutlined sx={{ color: '#ea580c', fontSize: '22px' }} />
           </Box>
           <Typography sx={styles.statValue}>#47</Typography>
           <Typography sx={styles.statLabel}>Rank</Typography>
@@ -131,34 +192,40 @@ const DashboardPage = () => {
       {/* Charts Row */}
       <Box sx={styles.chartsRow}>
         {/* Monthly Progress */}
-        <Box sx={styles.chartCard}>
+        <Box sx={{ ...styles.chartCard, '& svg': { outline: 'none' }, '& *:focus': { outline: 'none' } }}>
           <Typography sx={styles.chartTitle}>Monthly Progress</Typography>
           <Typography sx={styles.chartSubtitle}>Last 5 months</Typography>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+            <LineChart data={monthlyData} margin={{ top: 10, right: 20, left: -10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
               <XAxis 
                 dataKey="month" 
                 stroke="#9ca3af" 
                 style={{ fontSize: '12px', fontFamily: 'Inter' }}
+                tickLine={false}
+                axisLine={{ stroke: '#e5e7eb' }}
               />
               <YAxis 
                 stroke="#9ca3af" 
                 style={{ fontSize: '12px', fontFamily: 'Inter' }}
+                tickLine={false}
+                axisLine={false}
               />
+              <Tooltip content={<CustomLineTooltip />} cursor={{ stroke: '#0ea5e9', strokeWidth: 1 }} />
               <Line
                 type="monotone"
                 dataKey="items"
                 stroke="#0ea5e9"
                 strokeWidth={3}
                 dot={{ fill: '#0ea5e9', r: 5 }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
         </Box>
 
         {/* Waste Distribution */}
-        <Box sx={styles.chartCard}>
+        <Box sx={{ ...styles.chartCard, '& svg': { outline: 'none' }, '& *:focus': { outline: 'none' } }}>
           <Typography sx={styles.chartTitle}>Waste Distribution</Typography>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -167,9 +234,34 @@ const DashboardPage = () => {
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
-                outerRadius={100}
+                outerRadius={95}
                 paddingAngle={2}
                 dataKey="value"
+                activeShape={(props) => {
+                  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
+                  const total = wasteData.reduce((sum, entry) => sum + entry.value, 0);
+                  const percentage = ((payload.value / total) * 100).toFixed(1);
+                  
+                  return (
+                    <g>
+                      <text x={cx} y={cy - 10} textAnchor="middle" fill="#1a1a1a" fontSize="16" fontWeight="600">
+                        {payload.name}
+                      </text>
+                      <text x={cx} y={cy + 15} textAnchor="middle" fill={fill} fontSize="20" fontWeight="700">
+                        {percentage}%
+                      </text>
+                      <Sector
+                        cx={cx}
+                        cy={cy}
+                        innerRadius={innerRadius}
+                        outerRadius={outerRadius + 8}
+                        startAngle={startAngle}
+                        endAngle={endAngle}
+                        fill={fill}
+                      />
+                    </g>
+                  );
+                }}
               >
                 {wasteData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -181,21 +273,28 @@ const DashboardPage = () => {
       </Box>
 
       {/* Items Collected by Type */}
-      <Box sx={styles.barChartCard}>
+      <Box sx={{ ...styles.barChartCard, '& svg': { outline: 'none' }, '& *:focus': { outline: 'none' } }}>
         <Typography sx={styles.chartTitle}>Items Collected by Type</Typography>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={itemsData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={itemsData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
             <XAxis 
               dataKey="type" 
               stroke="#9ca3af" 
               style={{ fontSize: '11px', fontFamily: 'Inter' }}
+              tickLine={false}
+              axisLine={{ stroke: '#e5e7eb' }}
+              angle={0}
+              textAnchor="middle"
             />
             <YAxis 
               stroke="#9ca3af" 
               style={{ fontSize: '12px', fontFamily: 'Inter' }}
+              tickLine={false}
+              axisLine={false}
             />
-            <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+            <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} />
+            <Bar dataKey="count" radius={[8, 8, 0, 0]} maxBarSize={90}>
               {itemsData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
@@ -232,7 +331,7 @@ const DashboardPage = () => {
               <Box key={index} sx={styles.contributorItem}>
                 <Box sx={styles.contributorLeft}>
                   <Box sx={styles.contributorAvatar}>
-                    <PersonOutline />
+                    <PersonOutline sx={{ fontSize: '22px' }} />
                   </Box>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -260,7 +359,7 @@ const DashboardPage = () => {
       {/* Community Impact */}
       <Box sx={styles.communityCard}>
         <Typography sx={styles.communityTitle}>
-          <Public sx={{ color: '#0ea5e9' }} />
+          <Public sx={{ color: '#0ea5e9', fontSize: '22px' }} />
           Community Impact
         </Typography>
         <Box sx={styles.communityStats}>

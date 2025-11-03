@@ -3,18 +3,22 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
     {
         firebaseUid: { type: String, required: true, unique: true },
-        name: String,
+        name: { type: String },
         email: { type: String, required: true, unique: true },
         profileImage: String,
 
-        // Stats
+        // Basic info
+        location: { type: String, default: "" },
+        bio: { type: String, default: "" },
+
+        // Live stats
         totalItemsCollected: { type: Number, default: 0 },
+        totalCleanups: { type: Number, default: 0 },
         totalChallenges: { type: Number, default: 0 },
         impactScore: { type: Number, default: 0 },
 
         // Relations
-        badges: [{ type: mongoose.Schema.Types.ObjectId, ref: "Badge" }],
-        joinedChallenges: [{ type: mongoose.Schema.Types.ObjectId, ref: "UserChallenge" }],
+        joinedChallenges: [{ type: mongoose.Schema.Types.ObjectId, ref: "Challenge" }],
     },
     { timestamps: true }
 );

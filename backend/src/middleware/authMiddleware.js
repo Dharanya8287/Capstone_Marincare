@@ -4,20 +4,19 @@ export const verifyFirebaseToken = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({ success: false, message: "Missing or malformed Authorization header" });
+            return res.status(401).json({ success: false, message: "Unauthorized" });
         }
 
         const token = authHeader.split(" ")[1];
         if (!token) {
-            return res.status(401).json({ success: false, message: "Missing bearer token" });
+            return res.status(401).json({ success: false, message: "Unauthorized" });
         }
 
         const decoded = await admin.auth().verifyIdToken(token);
         req.user = decoded;
         next();
     } catch (err) {
-        // Do not leak sensitive details
         console.error("Token verification failed");
-        res.status(401).json({ success: false, message: "Invalid or expired token" });
+        return res.status(401).json({ success: false, message: "Session expired. Please login again." });
     }
 };

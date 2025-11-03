@@ -7,15 +7,32 @@ import { Box, CircularProgress } from "@mui/material";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-<<<<<<< HEAD
     useEffect(() => {
-        // Primary listener for Firebase authentication state changes.
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        // This is the primary listener for Firebase authentication state changes.
+        // It will fire automatically after signInWithPopup is successful.
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             setLoading(false);
+
+            // If the user is signed in, log the JWT token to the backend terminal
+            if (currentUser) {
+                try {
+                    const idToken = await currentUser.getIdToken(true);
+                    // Send token to backend for logging in terminal
+                    await fetch("http://localhost:5000/api/log-token", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ token: idToken }),
+                    });
+                } catch (err) {
+                    // Ignore errors to avoid affecting auth flow
+                }
+            }
         });
 
         // Cleanup the listener when the component unmounts
@@ -30,51 +47,22 @@ export function AuthProvider({ children }) {
 
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                }}
+            >
                 <CircularProgress />
             </Box>
         );
     }
-=======
-  useEffect(() => {
-    // This is the primary listener for Firebase authentication state changes.
-    // It will fire automatically after signInWithPopup is successful.
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-    });
 
-    // The redirect handling logic has been removed as it's no longer needed.
-
-    // Cleanup the listener when the component unmounts
-    return () => unsubscribe();
-  }, []);
-
-  const value = {
-    user,
-    isAuthenticated: !!user,
-    loading,
-  };
->>>>>>> origin/main
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuthContext = () => {
-  return useContext(AuthContext);
+    return useContext(AuthContext);
 };

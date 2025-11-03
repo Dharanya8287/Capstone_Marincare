@@ -161,7 +161,6 @@ export default function SignupPage() {
         }
     };
 
-    // If the user is authenticated, render nothing to prevent a flash of the form
     if (isAuthenticated) {
         return null;
     }

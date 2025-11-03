@@ -12,7 +12,7 @@ const app = express();
 app.use(
     cors({
         origin: ["http://localhost:3000", process.env.FRONTEND_URL].filter(Boolean),
-        methods: ["GET", "POST", "PUT", "DELETE"],
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
         credentials: true,
     })
 );
