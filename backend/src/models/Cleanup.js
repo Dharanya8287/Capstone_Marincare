@@ -2,21 +2,31 @@ import mongoose from "mongoose";
 
 const cleanupSchema = new mongoose.Schema(
     {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-        challenge: { type: mongoose.Schema.Types.ObjectId, ref: "Challenge" },
-        wasteCategory: { type: mongoose.Schema.Types.ObjectId, ref: "WasteCategory" },
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        challengeId: { type: mongoose.Schema.Types.ObjectId, ref: "Challenge", required: true },
+        imageFileId: { type: mongoose.Schema.Types.ObjectId }, // GridFS file id
 
-        imageUrl: String, // stored in MongoDB
-        quantity: { type: Number, default: 1 },
+        classifiedItems: [
+            {
+                label: {
+                    type: String,
+                    enum: [
+                        "plastic_bottle",
+                        "metal_can",
+                        "plastic_bag",
+                        "paper_cardboard",
+                        "cigarette_butt",
+                        "glass_bottle",
+                    ],
+                },
+                confidence: Number,
+            },
+        ],
 
-        location: {
-            type: { type: String, enum: ["Point"], default: "Point" },
-            coordinates: { type: [Number] },
-        },
+        totalItems: { type: Number, default: 1 },
+        createdAt: { type: Date, default: Date.now },
     },
     { timestamps: true }
 );
-
-cleanupSchema.index({ location: "2dsphere" });
 
 export default mongoose.model("Cleanup", cleanupSchema);
