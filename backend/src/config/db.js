@@ -29,5 +29,5 @@ export async function connectDB() {
     }
 }
 
-// ✅ Export both for other services
+// Export both for other services
 export { gridfsBucket };

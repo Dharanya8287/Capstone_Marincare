@@ -1,7 +1,9 @@
+// Mock data with realistic MongoDB ObjectIDs
+
 export const challenges = [
     // ========== ACTIVE CHALLENGES ==========
     {
-        _id: "1",
+        _id: "65c2a123456789012345678a",
         title: "Toronto Waterfront Cleanup",
         description: "Join us to protect the scenic Toronto shoreline and preserve marine life.",
         bannerImage: "/challangeimg/img1.jpg",
@@ -18,7 +20,7 @@ export const challenges = [
         totalVolunteers: 234,
     },
     {
-        _id: "2",
+        _id: "65c2a123456789012345678b",
         title: "Vancouver Island Cleanup",
         description: "Help protect the stunning west coast of Vancouver Island from ocean debris.",
         bannerImage: "/challangeimg/img2.jpg",
@@ -35,7 +37,7 @@ export const challenges = [
         totalVolunteers: 187,
     },
     {
-        _id: "3",
+        _id: "65c2a123456789012345678c",
         title: "Halifax Harbour Initiative",
         description: "Support cleanup of Halifax's historic harbour and coastal ecosystems.",
         bannerImage: "/challangeimg/img3.jpg",
@@ -52,7 +54,7 @@ export const challenges = [
         totalVolunteers: 156,
     },
     {
-        _id: "4",
+        _id: "65c2a123456789012345678d",
         title: "Edward Island Shores",
         description: "Join hands to protect the red-sand beaches of Prince Edward Island.",
         bannerImage: "/challangeimg/img4.jpg",
@@ -69,7 +71,7 @@ export const challenges = [
         totalVolunteers: 92,
     },
     {
-        _id: "5",
+        _id: "65c2a123456789012345678e",
         title: "Newfoundland Coast",
         description: "Clean the rugged and beautiful coastline of Newfoundland.",
         bannerImage: "/challangeimg/img5.jpg",
@@ -86,7 +88,7 @@ export const challenges = [
         totalVolunteers: 124,
     },
     {
-        _id: "6",
+        _id: "65c2a123456789012345678f",
         title: "Georgian Bay Cleanup",
         description: "Preserve the clear waters and natural beauty of Georgian Bay.",
         bannerImage: "/challangeimg/img6.jpg",
@@ -105,7 +107,7 @@ export const challenges = [
 
     // ========== UPCOMING CHALLENGES (6) ==========
     {
-        _id: "7",
+        _id: "65c2a123456789012345679a",
         title: "Lakeshore Drive",
         description: "A multi-location cleanup across Ontario's Great Lakes shorelines.",
         bannerImage: "/challangeimg/img7.jpg",
@@ -122,7 +124,7 @@ export const challenges = [
         totalVolunteers: 312,
     },
     {
-        _id: "8",
+        _id: "65c2a123456789012345679b",
         title: "Riverfront Renewal",
         description: "Join volunteers restoring Quebec's riverside environment.",
         bannerImage: "/challangeimg/img8.jpg",
@@ -139,7 +141,7 @@ export const challenges = [
         totalVolunteers: 67,
     },
     {
-        _id: "9",
+        _id: "65c2a123456789012345679c",
         title: "St. Lawrence River",
         description: "Help preserve the natural beauty of the St. Lawrence River in Montreal.",
         bannerImage: "/challangeimg/img9.jpg",
@@ -156,7 +158,7 @@ export const challenges = [
         totalVolunteers: 88,
     },
     {
-        _id: "10",
+        _id: "65c2a123456789012345679d",
         title: "Arctic Coastline Project",
         description: "Protect the pristine Arctic coastline and its fragile ecosystems.",
         bannerImage: "/challangeimg/img10.jpg",
@@ -173,7 +175,7 @@ export const challenges = [
         totalVolunteers: 45,
     },
     {
-        _id: "11",
+        _id: "65c2a123456789012345679e",
         title: "Churchill Bay Cleanup",
         description: "Join the efforts to restore Churchill's Hudson Bay coastline.",
         bannerImage: "/challangeimg/img11.jpg",
@@ -190,7 +192,7 @@ export const challenges = [
         totalVolunteers: 34,
     },
     {
-        _id: "12",
+        _id: "65c2a123456789012345679f",
         title: "Whitehorse Waterways",
         description: "Protect the pristine waterways and lakes of Whitehorse, Yukon.",
         bannerImage: "/challangeimg/img12.jpg",
@@ -209,7 +211,7 @@ export const challenges = [
 
     // ========== COMPLETED CHALLENGES (3) ==========
     {
-        _id: "13",
+        _id: "65c2a12345678901234567a0",
         title: "Tofino Beach",
         description: "Successfully protected the pristine beaches of Tofino on Vancouver Island.",
         bannerImage: "/challangeimg/img13.jpg",
@@ -226,7 +228,7 @@ export const challenges = [
         totalVolunteers: 145,
     },
     {
-        _id: "14",
+        _id: "65c2a12345678901234567a1",
         title: "Lake Winnipeg Initiative",
         description: "Successfully cleaned the vast shores of Lake Winnipeg.",
         bannerImage: "/challangeimg/img14.jpg",
@@ -243,7 +245,7 @@ export const challenges = [
         totalVolunteers: 134,
     },
     {
-        _id: "15",
+        _id: "65c2a12345678901234567a2",
         title: "Lunenburg Heritage",
         description: "Successfully cleaned the historic UNESCO coastline of Lunenburg.",
         bannerImage: "/challangeimg/img15.jpg",
@@ -268,5 +270,4 @@ export const mockStats = {
     provinces: 10,
 };
 
-// Helper to get unique regions
 export const regions = ["All", "Central", "East", "West", "North"];

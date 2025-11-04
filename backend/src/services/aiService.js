@@ -3,6 +3,7 @@ import { writeFileSync, unlinkSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
+// Classifier is now loaded once and held in memory.
 let classifier = null;
 
 const CANDIDATE_LABELS = [
@@ -11,7 +12,8 @@ const CANDIDATE_LABELS = [
     "plastic bag",
     "paper or cardboard",
     "cigarette butt",
-    "glass bottle"
+    "glass bottle",
+    "unknown trash", // Added a fallback
 ];
 
 const LABEL_MAP = {
@@ -21,22 +23,48 @@ const LABEL_MAP = {
     "paper or cardboard": "paper_cardboard",
     "cigarette butt": "cigarette_butt",
     "glass bottle": "glass_bottle",
+    "unknown trash": "unknown", // Map the fallback
 };
 
-async function loadModel() {
+// This function will be called by server.js at startup.
+export async function initializeAI() {
     if (!classifier) {
-        console.log("Loading CLIP zero-shot model...");
-        classifier = await pipeline("zero-shot-image-classification", "Xenova/clip-vit-base-patch32");
-        console.log("CLIP model loaded successfully.");
+        console.log("Loading AI model into memory. This may take a minute...");
+        try {
+            // We set a progress bar to see it loading
+            classifier = await pipeline("zero-shot-image-classification", "Xenova/clip-vit-base-patch32", {
+                progress_callback: (progress) => {
+                    // --- THIS IS THE FIX ---
+                    // We must check if 'progress.progress' exists before calling .toFixed()
+                    if (progress.progress) {
+                        console.log(`AI Model Loading: ${progress.file} (${(progress.progress).toFixed(1)}%)`);
+                    } else {
+                        // This will log other statuses like "downloading", "loading", etc.
+                        console.log(`AI Model Status: ${progress.status} - ${progress.file}`);
+                    }
+                    // --- END FIX ---
+                }
+            });
+            console.log("✅ AI Model loaded successfully.");
+        } catch (err) {
+            console.error("❌ Failed to load AI model:", err);
+            // We exit because the app can't run without the AI model in this flow
+            process.exit(1);
+        }
     }
 }
 
+// classifyImage is now much simpler. It assumes the model is already loaded.
 export async function classifyImage(buffer) {
     if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
         throw new Error("Invalid image buffer");
     }
 
-    await loadModel();
+    // No more await loadModel(). We just check if it's ready.
+    if (!classifier) {
+        console.error("AI Model not initialized. Please restart the server.");
+        throw new Error("AI classifier is not ready.");
+    }
 
     // Create a temporary file path
     const tempFilePath = join(tmpdir(), `temp-image-${Date.now()}.jpg`);
@@ -45,21 +73,23 @@ export async function classifyImage(buffer) {
         // Write buffer to temporary file
         writeFileSync(tempFilePath, buffer);
 
-        // Pass the file path to the classifier
+        // Pass the file path to the classifier. This is now fast (1-2 seconds).
         const results = await classifier(tempFilePath, CANDIDATE_LABELS);
 
         // Sort by confidence
         results.sort((a, b) => b.score - a.score);
         const top = results[0];
 
+        // Ensure the label is one of our mapped labels, otherwise default to "unknown"
+        const finalLabel = LABEL_MAP[top.label] || "unknown";
+
         return {
-            label: LABEL_MAP[top.label] || "plastic_bottle",
+            label: finalLabel,
             confidence: parseFloat(top.score.toFixed(4)),
-            raw: results.map(r => ({
-                label: r.label,
-                score: parseFloat(r.score.toFixed(4))
-            })),
         };
+    } catch (error) {
+        console.error("Error during AI classification:", error);
+        throw new Error("Failed to classify image.");
     } finally {
         // Clean up: delete the temporary file
         try {
@@ -69,3 +99,4 @@ export async function classifyImage(buffer) {
         }
     }
 }
+

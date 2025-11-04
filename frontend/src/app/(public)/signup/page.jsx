@@ -141,8 +141,10 @@ export default function SignupPage() {
 
         try {
             setLoading(true);
-            await signup(form.email, form.password);
+            // UPDATED: Pass name to the signup hook
+            await signup(form.email, form.password, form.name);
             // On success, the AuthProvider will detect the new user and the useEffect will redirect.
+            // The `login` is now handled *inside* the `signup` hook.
         } catch (err) {
             setFormErrors({ global: err.message || "Signup failed. Please try again." });
         } finally {

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import {
     Box,
     Container,
@@ -16,6 +16,11 @@ import {
     InputLabel,
     Chip,
     Alert,
+    CircularProgress,
+    Tabs,
+    Tab,
+    TextField,
+    FormControlLabel,
 } from "@mui/material";
 import {
     CloudUpload,
@@ -23,42 +28,63 @@ import {
     Close,
     CheckCircle,
     EmojiEvents,
+    Warning,
+    ListAlt,
+    Check, // Import Check icon for success
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import withAuth from "@/components/auth/withAuth";
 import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
+import { useAuthContext } from "@/context/AuthContext";
+import { apiCall } from "@/utils/api";
+import { trashCategories } from "@/utils/trashCategories";
 
 function UploadPage() {
     const router = useRouter();
     const fileInputRef = useRef(null);
     const { getActiveChallenges } = useJoinedChallenges();
+    const { user, loading: authLoading } = useAuthContext();
 
     const [selectedChallenge, setSelectedChallenge] = useState("");
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
+
+    const [tabValue, setTabValue] = useState(0); // 0 for AI, 1 for Manual
     const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [manualForm, setManualForm] = useState({
+        label: '',
+        itemCount: 1,
+    });
 
     const activeChallenges = getActiveChallenges();
 
-    const wasteTypes = [
-        { icon: "🥤", label: "Plastic Bottles" },
-        { icon: "🥫", label: "Metal Cans" },
-        { icon: "🛍️", label: "Plastic Bags" },
-        { icon: "📄", label: "Paper/Cardboard" },
-        { icon: "🚬", label: "Cigarette Butts" },
-        { icon: "🍾", label: "Glass Bottles" },
-    ];
+    const handleTabChange = (event, newValue) => {
+        setTabValue(newValue);
+        setError("");
+        setSuccess("");
+    };
+
+    const handleManualFormChange = (event) => {
+        const { name, value } = event.target;
+        setManualForm(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
-        setSelectedFiles((prev) => [...prev, ...files]);
+        setSelectedFiles(files.slice(0, 1)); // Only allow one file
+        setError("");
+        setSuccess("");
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
         const files = Array.from(e.dataTransfer.files);
-        setSelectedFiles((prev) => [...prev, ...files]);
+        setSelectedFiles(files.slice(0, 1)); // Only allow one file
+        setError("");
+        setSuccess("");
     };
 
     const handleDragOver = (e) => {
@@ -78,23 +104,98 @@ function UploadPage() {
         fileInputRef.current.click();
     };
 
-    const handleSubmit = () => {
+    // --- FIX: Updated handleSubmit for SYNCHRONOUS flow ---
+    const handleSubmit = async () => {
         if (!selectedChallenge) {
-            alert("Please select a challenge first!");
+            setError("Please select a challenge first!");
             return;
         }
         if (selectedFiles.length === 0) {
-            alert("Please select at least one photo!");
+            setError("Please select at least one photo!");
+            return;
+        }
+        if (!user) {
+            setError("You must be logged in to upload.");
             return;
         }
 
         setUploading(true);
-        setTimeout(() => {
-            alert(`Successfully uploaded ${selectedFiles.length} photo(s) to challenge!`);
+        setError("");
+        setSuccess("");
+
+        try {
+            const formData = new FormData();
+            formData.append("challengeId", selectedChallenge);
+            formData.append("image", selectedFiles[0]);
+
+            const res = await apiCall(
+                'post',
+                "http://localhost:5000/api/cleanups/upload",
+                formData,
+                true // force refresh token
+            );
+
+            // The backend now returns a 200 with the result
+            setSuccess(res.data.message); // e.g., "Success! AI classified as: plastic_bottle"
             setSelectedFiles([]);
+
+        } catch (err) {
+            console.error("AI Upload error:", err);
+            setError(err.response?.data?.message || "An error occurred during upload.");
+        } finally {
             setUploading(false);
-        }, 2000);
+        }
     };
+    // --- END FIX ---
+
+    const handleManualSubmit = async () => {
+        if (!selectedChallenge) {
+            setError("Please select a challenge first!");
+            return;
+        }
+        if (!manualForm.label) {
+            setError("Please select a trash category.");
+            return;
+        }
+        const count = parseInt(manualForm.itemCount, 10);
+        if (isNaN(count) || count <= 0) {
+            setError("Please enter a valid item count.");
+            return;
+        }
+        if (!user) {
+            setError("You must be logged in to log a cleanup.");
+            return;
+        }
+
+        setUploading(true);
+        setError("");
+        setSuccess("");
+
+        try {
+            const payload = {
+                challengeId: selectedChallenge,
+                label: manualForm.label,
+                itemCount: count,
+            };
+
+            const res = await apiCall(
+                'post',
+                "http://localhost:5000/api/cleanups/manual",
+                payload,
+                true // force refresh token
+            );
+
+            setSuccess(res.data.message); // e.g., "Successfully logged 10 item(s)"
+            setManualForm({ label: '', itemCount: 1 }); // Reset form
+
+        } catch (err) {
+            console.error("Manual Log error:", err);
+            setError(err.response?.data?.message || "An error occurred while logging.");
+        } finally {
+            setUploading(false);
+        }
+    };
+
 
     return (
         <Box
@@ -116,7 +217,7 @@ function UploadPage() {
                             fontSize: { xs: "1.75rem", sm: "2.25rem", md: "2.5rem" },
                         }}
                     >
-                        📸 Upload Cleanup Photos
+                        Log Your Cleanup
                     </Typography>
                     <Typography
                         variant="body1"
@@ -128,15 +229,14 @@ function UploadPage() {
                             px: 2,
                         }}
                     >
-                        Our AI automatically identifies and classifies waste from your photos.
-                        Select a challenge and start contributing!
+                        Choose AI-powered photo upload or log your items manually.
                     </Typography>
                 </Box>
 
-                <Grid container spacing={3}>
-                    {/* Left Column - Challenge Selection & Upload */}
-                    <Grid item xs={12} lg={8}>
-                        {/* Active Challenges Selection */}
+                <Grid container spacing={3} justifyContent="center">
+                    {/* Main Column - Upload */}
+                    <Grid item xs={12} md={10} lg={8}>
+                        {/* Challenge Selection */}
                         {activeChallenges.length > 0 ? (
                             <Paper
                                 sx={{
@@ -149,7 +249,7 @@ function UploadPage() {
                                 <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
                                     <EmojiEvents sx={{ color: "#f59e0b", fontSize: 28, mr: 1.5 }} />
                                     <Typography variant="h6" sx={{ fontWeight: 700, color: "#1e293b" }}>
-                                        Select Your Challenge
+                                        1. Select Your Challenge
                                     </Typography>
                                 </Box>
 
@@ -247,7 +347,7 @@ function UploadPage() {
                                     No Active Challenges Yet
                                 </Typography>
                                 <Typography variant="body2" sx={{ mb: 2 }}>
-                                    Join an active challenge to start uploading your cleanup photos!
+                                    Join an active challenge to start logging your cleanup!
                                 </Typography>
                                 <Button
                                     variant="contained"
@@ -265,353 +365,168 @@ function UploadPage() {
                             </Alert>
                         )}
 
-                        {/* Upload Zone */}
+                        {/* --- Tabs for AI / Manual --- */}
                         <Paper
-                            onDrop={handleDrop}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
                             sx={{
-                                p: { xs: 3, sm: 4 },
+                                p: { xs: 2, sm: 3 },
                                 mb: 3,
                                 borderRadius: "20px",
-                                border: isDragging ? "3px dashed #0ea5e9" : "2px dashed #cbd5e1",
-                                backgroundColor: isDragging ? "#f0f9ff" : "#fff",
-                                transition: "all 0.3s ease",
-                                textAlign: "center",
                                 boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
                             }}
                         >
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    gap: 2,
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        width: 80,
-                                        height: 80,
-                                        borderRadius: "50%",
-                                        background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        mb: 1,
-                                        boxShadow: "0 8px 24px rgba(14, 165, 233, 0.3)",
-                                    }}
-                                >
-                                    <CloudUpload sx={{ fontSize: 40, color: "white" }} />
-                                </Box>
-
-                                <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a" }}>
-                                    Drop your photos here
-                                </Typography>
-
-                                <Typography variant="body2" sx={{ color: "#64748b", mb: 1 }}>
-                                    or use the buttons below
-                                </Typography>
-
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        gap: 2,
-                                        flexWrap: "wrap",
-                                        justifyContent: "center",
-                                    }}
-                                >
-                                    <Button
-                                        variant="contained"
-                                        startIcon={<CameraAlt />}
-                                        onClick={handleTakePhoto}
-                                        sx={{
-                                            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                            color: "#fff",
-                                            px: 3,
-                                            py: 1.5,
-                                            borderRadius: "12px",
-                                            textTransform: "none",
-                                            fontWeight: 700,
-                                            fontSize: "1rem",
-                                            boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)",
-                                            "&:hover": {
-                                                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                                            },
-                                        }}
-                                    >
-                                        Take Photo
-                                    </Button>
-
-                                    <Button
-                                        variant="outlined"
-                                        startIcon={<CloudUpload />}
-                                        onClick={() => fileInputRef.current?.click()}
-                                        sx={{
-                                            borderColor: "#0ea5e9",
-                                            borderWidth: 2,
-                                            color: "#0ea5e9",
-                                            px: 3,
-                                            py: 1.5,
-                                            borderRadius: "12px",
-                                            textTransform: "none",
-                                            fontWeight: 700,
-                                            fontSize: "1rem",
-                                            "&:hover": {
-                                                borderWidth: 2,
-                                                borderColor: "#0284c7",
-                                                backgroundColor: "#f0f9ff",
-                                            },
-                                        }}
-                                    >
-                                        Choose Files
-                                    </Button>
-                                </Box>
-
-                                <Typography variant="caption" sx={{ color: "#94a3b8", mt: 1 }}>
-                                    Supports: JPG, PNG, HEIC • Max size: 10MB per file
-                                </Typography>
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                                <Tabs value={tabValue} onChange={handleTabChange} centered>
+                                    <Tab icon={<CameraAlt />} iconPosition="start" label="AI Upload (1 Photo)" />
+                                    <Tab icon={<ListAlt />} iconPosition="start" label="Log Manually" />
+                                </Tabs>
                             </Box>
 
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                style={{ display: "none" }}
-                                onChange={handleFileSelect}
-                                capture="environment"
-                            />
-                        </Paper>
-
-                        {/* Selected Files Preview */}
-                        {selectedFiles.length > 0 && (
-                            <Paper
-                                sx={{
-                                    p: 3,
-                                    mb: 3,
-                                    borderRadius: "20px",
-                                    backgroundColor: "#fff",
-                                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                                }}
-                            >
-                                <Box
-                                    sx={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "center",
-                                        mb: 2,
-                                    }}
-                                >
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a" }}>
-                                        Selected Photos ({selectedFiles.length})
-                                    </Typography>
-                                    <Button
-                                        size="small"
-                                        onClick={() => setSelectedFiles([])}
-                                        sx={{ color: "#ef4444", textTransform: "none", fontWeight: 600 }}
-                                    >
-                                        Clear All
-                                    </Button>
-                                </Box>
-                                <Grid container spacing={2}>
-                                    {selectedFiles.map((file, index) => (
-                                        <Grid item xs={6} sm={4} md={3} key={index}>
-                                            <Box
-                                                sx={{
-                                                    position: "relative",
-                                                    paddingTop: "100%",
-                                                    borderRadius: "16px",
-                                                    overflow: "hidden",
-                                                    backgroundColor: "#f1f5f9",
-                                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                                }}
-                                            >
-                                                <img
-                                                    src={URL.createObjectURL(file)}
-                                                    alt={file.name}
-                                                    style={{
-                                                        position: "absolute",
-                                                        top: 0,
-                                                        left: 0,
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        objectFit: "cover",
-                                                    }}
-                                                />
-                                                <IconButton
-                                                    onClick={() => removeFile(index)}
-                                                    sx={{
-                                                        position: "absolute",
-                                                        top: 8,
-                                                        right: 8,
-                                                        backgroundColor: "rgba(239, 68, 68, 0.95)",
-                                                        color: "#fff",
-                                                        width: 32,
-                                                        height: 32,
-                                                        "&:hover": {
-                                                            backgroundColor: "#dc2626",
-                                                        },
-                                                    }}
-                                                >
-                                                    <Close fontSize="small" />
-                                                </IconButton>
-                                            </Box>
-                                        </Grid>
-                                    ))}
-                                </Grid>
-
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    size="large"
-                                    disabled={!selectedChallenge || uploading}
-                                    onClick={handleSubmit}
-                                    sx={{
-                                        mt: 3,
-                                        background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                                        color: "white",
-                                        py: 2,
-                                        borderRadius: "14px",
-                                        textTransform: "none",
-                                        fontWeight: 700,
-                                        fontSize: "1.125rem",
-                                        boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)",
-                                        "&:hover": {
-                                            background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
-                                        },
-                                        "&:disabled": {
-                                            background: "#e2e8f0",
-                                            color: "#94a3b8",
-                                            boxShadow: "none",
-                                        },
-                                    }}
-                                >
-                                    {uploading ? "Analyzing Photos..." : "Submit Photos"}
-                                </Button>
-                            </Paper>
-                        )}
-                    </Grid>
-
-                    {/* Right Column - Info Sidebar */}
-                    <Grid item xs={12} lg={4}>
-                        {/* How It Works */}
-                        <Paper
-                            sx={{
-                                p: { xs: 2.5, sm: 3 },
-                                mb: 3,
-                                borderRadius: "20px",
-                                backgroundColor: "#fff",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            }}
-                        >
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a", mb: 3 }}>
-                                How It Works
-                            </Typography>
-
-                            {[
-                                {
-                                    step: "1",
-                                    title: "Select Challenge",
-                                    desc: "Choose which cleanup challenge to contribute to",
-                                    color: "#f59e0b",
-                                },
-                                {
-                                    step: "2",
-                                    title: "Upload Photos",
-                                    desc: "Take photos of collected waste items",
-                                    color: "#10b981",
-                                },
-                                {
-                                    step: "3",
-                                    title: "AI Analysis",
-                                    desc: "Our AI identifies and counts waste types",
-                                    color: "#8b5cf6",
-                                },
-                                {
-                                    step: "4",
-                                    title: "Track Impact",
-                                    desc: "See your contribution to the challenge",
-                                    color: "#0ea5e9",
-                                },
-                            ].map((item, index) => (
-                                <Box key={index} sx={{ display: "flex", gap: 2, mb: index < 3 ? 3 : 0 }}>
-                                    <Box
+                            {/* --- AI Upload Panel --- */}
+                            {tabValue === 0 && (
+                                <Box>
+                                    <Paper
+                                        onDrop={handleDrop}
+                                        onDragOver={handleDragOver}
+                                        onDragLeave={handleDragLeave}
                                         sx={{
-                                            width: 40,
-                                            height: 40,
-                                            borderRadius: "12px",
-                                            backgroundColor: `${item.color}20`,
-                                            color: item.color,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            fontWeight: 800,
-                                            fontSize: "1.25rem",
-                                            flexShrink: 0,
+                                            p: { xs: 3, sm: 4 },
+                                            mb: 3,
+                                            borderRadius: "20px",
+                                            border: isDragging ? "3px dashed #0ea5e9" : "2px dashed #cbd5e1",
+                                            backgroundColor: isDragging ? "#f0f9ff" : "#fff",
+                                            transition: "all 0.3s ease",
+                                            textAlign: "center",
                                         }}
                                     >
-                                        {item.step}
-                                    </Box>
-                                    <Box>
-                                        <Typography
-                                            variant="subtitle2"
-                                            sx={{ fontWeight: 700, color: "#0d1b2a", mb: 0.5 }}
-                                        >
-                                            {item.title}
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ color: "#64748b", lineHeight: 1.5 }}>
-                                            {item.desc}
-                                        </Typography>
-                                    </Box>
-                                </Box>
-                            ))}
-                        </Paper>
-
-                        {/* Detectable Waste Types */}
-                        <Paper
-                            sx={{
-                                p: { xs: 2.5, sm: 3 },
-                                borderRadius: "20px",
-                                backgroundColor: "#fff",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            }}
-                        >
-                            <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a", mb: 3 }}>
-                                Detectable Waste Types
-                            </Typography>
-
-                            <Grid container spacing={1.5}>
-                                {wasteTypes.map((type, index) => (
-                                    <Grid item xs={6} key={index}>
-                                        <Box
-                                            sx={{
-                                                p: 2,
-                                                borderRadius: "12px",
-                                                backgroundColor: "#f8fafc",
-                                                border: "1px solid #e2e8f0",
-                                                textAlign: "center",
-                                                transition: "all 0.3s ease",
-                                                "&:hover": {
-                                                    backgroundColor: "#f0f9ff",
-                                                    borderColor: "#0ea5e9",
-                                                    transform: "translateY(-2px)",
-                                                },
-                                            }}
-                                        >
-                                            <Typography sx={{ fontSize: "2rem", mb: 0.5 }}>
-                                                {type.icon}
+                                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                                            <Box sx={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)", display: "flex", alignItems: "center", justifyContent: "center", mb: 1, boxShadow: "0 8px 24px rgba(14, 165, 233, 0.3)" }}>
+                                                <CloudUpload sx={{ fontSize: 40, color: "white" }} />
+                                            </Box>
+                                            <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a" }}>
+                                                Drop your photo here
                                             </Typography>
-                                            <Typography
-                                                variant="caption"
-                                                sx={{ color: "#475569", fontWeight: 600, fontSize: "0.75rem" }}
+                                            {/* --- FIX: Updated text --- */}
+                                            <Typography variant="body2" sx={{ color: "#64748b", mb: 1 }}>
+                                                Upload one photo of a single item or small pile.
+                                            </Typography>
+                                            {/* --- END FIX --- */}
+                                            <Button
+                                                variant="outlined"
+                                                startIcon={<CloudUpload />}
+                                                onClick={() => fileInputRef.current?.click()}
+                                                sx={{ borderColor: "#0ea5e9", borderWidth: 2, color: "#0ea5e9", px: 3, py: 1.5, borderRadius: "12px", textTransform: "none", fontWeight: 700, fontSize: "1rem", "&:hover": { borderWidth: 2, borderColor: "#0284c7", backgroundColor: "#f0f9ff" } }}
                                             >
-                                                {type.label}
+                                                Choose File
+                                            </Button>
+                                            <Typography variant="caption" sx={{ color: "#94a3b8", mt: 1 }}>
+                                                Supports: JPG, PNG • Max size: 10MB
                                             </Typography>
                                         </Box>
+
+                                        <input
+                                            ref={fileInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: "none" }}
+                                            onChange={handleFileSelect}
+                                        />
+                                    </Paper>
+
+                                    {selectedFiles.length > 0 && (
+                                        <Box sx={{ mb: 3 }}>
+                                            <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a", mb: 2 }}>
+                                                Selected Photo
+                                            </Typography>
+                                            <Grid container spacing={2}>
+                                                {selectedFiles.map((file, index) => (
+                                                    <Grid item xs={6} sm={4} key={index}>
+                                                        <Box sx={{ position: "relative", paddingTop: "100%", borderRadius: "16px", overflow: "hidden", backgroundColor: "#f1f5f9", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+                                                            <img src={URL.createObjectURL(file)} alt={file.name} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                                                            <IconButton onClick={() => removeFile(index)} sx={{ position: "absolute", top: 8, right: 8, backgroundColor: "rgba(239, 68, 68, 0.95)", color: "#fff", width: 32, height: 32, "&:hover": { backgroundColor: "#dc2626" } }}>
+                                                                <Close fontSize="small" />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </Grid>
+                                                ))}
+                                            </Grid>
+                                        </Box>
+                                    )}
+
+                                    <Button
+                                        variant="contained"
+                                        fullWidth
+                                        size="large"
+                                        disabled={!selectedChallenge || uploading || selectedFiles.length === 0}
+                                        onClick={handleSubmit}
+                                        sx={{ background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)", color: "white", py: 2, borderRadius: "14px", textTransform: "none", fontWeight: 700, fontSize: "1.125rem", boxShadow: "0 8px 24px rgba(139, 92, 246, 0.3)", "&:hover": { background: "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)" }, "&:disabled": { background: "#e2e8f0", color: "#94a3b8", boxShadow: "none" } }}
+                                    >
+                                        {uploading ? <CircularProgress size={26} color="inherit" /> : "Submit & Classify"}
+                                    </Button>
+                                </Box>
+                            )}
+
+                            {/* --- Manual Log Panel --- */}
+                            {tabValue === 1 && (
+                                <Box>
+                                    <Alert severity="info" icon={<Warning />} sx={{ mb: 3, borderRadius: "12px" }}>
+                                        Use this form if AI fails or to log a large number of items of the same type.
+                                    </Alert>
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} sm={8}>
+                                            <FormControl fullWidth>
+                                                <InputLabel>Trash Category</InputLabel>
+                                                <Select
+                                                    name="label"
+                                                    value={manualForm.label}
+                                                    label="Trash Category"
+                                                    onChange={handleManualFormChange}
+                                                >
+                                                    {trashCategories.map((cat) => (
+                                                        <MenuItem key={cat.key} value={cat.key}>
+                                                            <span style={{ marginRight: '10px' }}>{cat.icon}</span> {cat.displayName}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        </Grid>
+                                        <Grid item xs={12} sm={4}>
+                                            <TextField
+                                                name="itemCount"
+                                                label="Item Count"
+                                                type="number"
+                                                fullWidth
+                                                value={manualForm.itemCount}
+                                                onChange={handleManualFormChange}
+                                                inputProps={{ min: 1 }}
+                                            />
+                                        </Grid>
                                     </Grid>
-                                ))}
-                            </Grid>
+
+                                    <Button
+                                        variant="contained"
+                                        fullWidth
+                                        size="large"
+                                        disabled={!selectedChallenge || uploading}
+                                        onClick={handleManualSubmit}
+                                        sx={{ mt: 3, background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", color: "white", py: 2, borderRadius: "14px", textTransform: "none", fontWeight: 700, fontSize: "1.125rem", boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)", "&:hover": { background: "linear-gradient(135deg, #059669 0%, #047857 100%)" }, "&:disabled": { background: "#e2e8f0", color: "#94a3b8", boxShadow: "none" } }}
+                                    >
+                                        {uploading ? <CircularProgress size={26} color="inherit" /> : "Log Cleanup Manually"}
+                                    </Button>
+                                </Box>
+                            )}
+
+                            {/* --- Error / Success Messages --- */}
+                            {error && (
+                                <Alert severity="error" sx={{ mt: 3, borderRadius: "12px" }}>
+                                    {error}
+                                </Alert>
+                            )}
+                            {success && (
+                                <Alert severity="success" icon={<Check />} sx={{ mt: 3, borderRadius: "12px" }}>
+                                    {success}
+                                </Alert>
+                            )}
+
                         </Paper>
                     </Grid>
                 </Grid>
@@ -621,3 +536,4 @@ function UploadPage() {
 }
 
 export default withAuth(UploadPage);
+

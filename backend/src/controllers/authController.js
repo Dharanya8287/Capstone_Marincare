@@ -36,7 +36,79 @@ export const checkEmail = async (req, res) => {
     }
 };
 
-// ---- YOU WERE MISSING THIS EXPORT ----
+/**
+ * @desc    Register a new user in Firebase and MongoDB
+ * @route   POST /api/auth/register
+ * @access  Public
+ */
+export const registerUser = async (req, res) => {
+    const { email, password, name } = req.body;
+
+    // Basic validation
+    if (!email || !password || !name) {
+        return res.status(400).json({ success: false, message: "Please provide email, password, and name" });
+    }
+
+    // 1. Check if user already exists in MongoDB
+    const mongoUserExists = await User.findOne({ email });
+    if (mongoUserExists) {
+        return res.status(400).json({ success: false, message: "Email is already registered" });
+    }
+
+    let firebaseUser;
+    try {
+        // 2. Create user in Firebase Auth
+        firebaseUser = await admin.auth().createUser({
+            email: email,
+            password: password,
+            displayName: name,
+        });
+
+        // 3. Create user in MongoDB
+        const newUser = await User.create({
+            firebaseUid: firebaseUser.uid,
+            email: email,
+            name: name,
+        });
+
+        res.status(201).json({
+            success: true,
+            message: "User registered successfully",
+            user: {
+                id: newUser._id,
+                firebaseUid: newUser.firebaseUid,
+                name: newUser.name,
+                email: newUser.email,
+            },
+        });
+
+    } catch (error) {
+        // 4. Rollback: If MongoDB creation fails, delete the Firebase user
+        // This prevents de-synced "ghost" users
+        if (firebaseUser) {
+            await admin.auth().deleteUser(firebaseUser.uid);
+            console.error(`Rollback: Deleted Firebase user ${firebaseUser.uid} due to MongoDB error.`);
+        }
+
+        console.error("Registration Error:", error);
+        // Handle Firebase-specific errors
+        if (error.code === 'auth/email-already-exists') {
+            return res.status(400).json({ success: false, message: "Email is already registered" });
+        }
+        if (error.code === 'auth/invalid-password') {
+            return res.status(400).json({ success: false, message: "Password must be at least 6 characters" });
+        }
+
+        res.status(500).json({ success: false, message: "Server error during registration" });
+    }
+};
+
+
+/**
+ * @desc    Sync Firebase user to MongoDB (on login)
+ * @route   POST /api/auth/sync
+ * @access  Public (Relies on ID token)
+ */
 export const syncUser = async (req, res) => {
     try {
         const { idToken } = req.body;
@@ -47,9 +119,12 @@ export const syncUser = async (req, res) => {
         const decoded = await admin.auth().verifyIdToken(idToken);
         const { uid, name, email, picture } = decoded;
 
+        // Find existing user or create a new one (upsert logic)
+        // This is safe for login/Google Sign-In as it won't create duplicates
         let user = await User.findOne({ firebaseUid: uid });
 
         if (!user) {
+            console.log(`Sync: User ${uid} not found in MongoDB. Creating...`);
             user = await User.create({
                 firebaseUid: uid,
                 name: name || (email ? email.split("@")[0] : "Anonymous"),
@@ -70,7 +145,7 @@ export const syncUser = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Firebase auth error");
+        console.error("Firebase auth/sync error:", error.message);
         res.status(401).json({ success: false, message: "Invalid or expired Firebase token" });
     }
 };

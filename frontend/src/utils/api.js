@@ -12,9 +12,23 @@ export async function getIdToken(forceRefresh = false) {
 // Wrapper for API calls that always sends fresh token
 export async function apiCall(method, url, data = {}, forceRefresh = false) {
     const idToken = await getIdToken(forceRefresh);
+
+    // --- FIX for FormData ---
+    // Check if data is FormData. If so, don't set Content-Type,
+    // let the browser set it (it's special for multipart/form-data)
+    const isFormData = data instanceof FormData;
+
     const config = {
-        headers: { Authorization: `Bearer ${idToken}` },
+        headers: {
+            Authorization: `Bearer ${idToken}`,
+        },
     };
+
+    if (!isFormData) {
+        config.headers['Content-Type'] = 'application/json';
+    }
+    // --- END FIX ---
+
 
     // GET and DELETE do not use 'data' argument in axios, must use 'params' instead for GET if needed
     if (method === 'get' || method === 'delete') {
