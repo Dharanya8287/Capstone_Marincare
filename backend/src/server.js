@@ -11,6 +11,9 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cleanups", cleanupRoutes); // <-- ADDED
+app.get("/", (req, res) => {
+    res.status(200).send("Server is running 🚀");
+});
 
 // --- FIX ---
 // We wrap the server start in an async function to load the AI model first

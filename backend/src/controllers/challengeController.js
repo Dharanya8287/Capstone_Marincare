@@ -2,7 +2,7 @@ import Challenge from "../models/Challenge.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 
-// @desc    Fetch all challenges
+// Fetch all challenges
 export const getChallenges = async (req, res) => {
     try {
         const challenges = await Challenge.find({}).sort({ startDate: 1 });
@@ -12,7 +12,7 @@ export const getChallenges = async (req, res) => {
     }
 };
 
-// @desc    Get aggregated stats for the challenges page
+// Get aggregated stats for the challenges page
 export const getChallengeStats = async (req, res) => {
     try {
         const totalChallenges = await Challenge.countDocuments();
@@ -39,9 +39,9 @@ export const getChallengeStats = async (req, res) => {
     }
 };
 
-// @desc    Get single challenge by ID
-// @route   GET /api/challenges/:id
-// @access  Public
+// Get single challenge by ID
+// GET /api/challenges/:id
+// access  Public
 export const getChallengeById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -63,9 +63,9 @@ export const getChallengeById = async (req, res) => {
     }
 };
 
-// @desc    Join a challenge
-// @route   POST /api/challenges/:id/join
-// @access  Private
+// Join a challenge
+// POST /api/challenges/:id/join
+// Private
 export const joinChallenge = async (req, res) => {
     try {
         const { id } = req.params;

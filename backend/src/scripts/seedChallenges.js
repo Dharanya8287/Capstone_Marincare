@@ -250,7 +250,7 @@ async function seedChallenges() {
         const activeChallenges = insertedChallenges.filter(c => c.status === "active");
         const upcomingChallenges = insertedChallenges.filter(c => c.status === "upcoming");
         const completedChallenges = insertedChallenges.filter(c => c.status === "completed");
-        
+
         console.log(`   Active: ${activeChallenges.length}`);
         console.log(`   Upcoming: ${upcomingChallenges.length}`);
         console.log(`   Completed: ${completedChallenges.length}`);
