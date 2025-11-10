@@ -297,25 +297,8 @@ function ChallengeDetailsPage({ params }) {
             <Container maxWidth="xl" sx={{ mt: { xs: -2, sm: -3 }, position: "relative", zIndex: 2 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }}>
                     {/* Left Column - Main Content */}
-                    <Grid item xs={12} md={8}>
-                        {/* Description Card */}
-                        <Paper
-                            sx={{
-                                p: { xs: 2.5, sm: 3.5 },
-                                borderRadius: "20px",
-                                mb: { xs: 2, md: 3 },
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            }}
-                        >
-                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: "#1e293b" }}>
-                                About This Challenge
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#475569", lineHeight: 1.8 }}>
-                                {challenge.description}
-                            </Typography>
-                        </Paper>
-
-                        {/* Progress Cards Row */}
+                    <Grid item xs={12} lg={8}>
+                        {/* Progress Cards Row - Full Width on Mobile, Side by Side on Desktop */}
                         <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
                             {/* Overall Progress */}
                             <Grid item xs={12} sm={6}>
@@ -420,6 +403,23 @@ function ChallengeDetailsPage({ params }) {
                             </Grid>
                         </Grid>
 
+                        {/* Description Card */}
+                        <Paper
+                            sx={{
+                                p: { xs: 2.5, sm: 3.5 },
+                                borderRadius: "20px",
+                                mb: { xs: 2, md: 3 },
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                            }}
+                        >
+                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: "#1e293b" }}>
+                                About This Challenge
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: "#475569", lineHeight: 1.8 }}>
+                                {challenge.description}
+                            </Typography>
+                        </Paper>
+
                         {/* Trash Categories */}
                         <Paper
                             sx={{
@@ -477,9 +477,9 @@ function ChallengeDetailsPage({ params }) {
                         </Paper>
                     </Grid>
 
-                    {/* Right Column - Action Panel & Info */}
-                    <Grid item xs={12} md={4}>
-                        <Box sx={{ position: { md: "sticky" }, top: { md: 20 } }}>
+                    {/* Right Column - Action Panel & Info - Always Visible */}
+                    <Grid item xs={12} lg={4}>
+                        <Box sx={{ position: { lg: "sticky" }, top: { lg: 20 } }}>
                             {/* Action Card */}
                             <Paper
                                 sx={{
@@ -670,7 +670,7 @@ function ChallengeDetailsPage({ params }) {
                                 )}
                             </Paper>
 
-                            {/* Challenge Details Info Card */}
+                            {/* Challenge Details Info Card - Always Visible */}
                             <Paper
                                 sx={{
                                     p: { xs: 2.5, sm: 3.5 },
