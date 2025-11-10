@@ -35,6 +35,21 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 **Course:** PROG8751 Capstone (Web Development)  
 **Institution:** Conestoga College
 
+## 📚 Documentation
+
+Comprehensive implementation documentation for the backend architecture:
+
+- **[SUMMARY.md](./SUMMARY.md)** - Quick overview and getting started guide
+- **[BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)** - Complete architecture analysis and design
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Detailed API endpoint specifications
+- **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - Week-by-week implementation plan
+
+### Quick Start
+
+1. **Backend Developers:** Read [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) → Follow [IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)
+2. **Frontend Developers:** Read [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) → Integrate endpoints
+3. **All Team Members:** Start with [SUMMARY.md](./SUMMARY.md) for overview
+
 ## Links
 
 - [GitHub Repository](https://github.com/Mohamed495104/Capstone-WaveGuard-G1)
