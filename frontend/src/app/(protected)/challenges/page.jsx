@@ -53,6 +53,26 @@ function ChallengesPage() {
     // RegionList
     const uniqueRegions = ["All", ...new Set(regionList.filter((r) => r && r !== "All"))];
 
+    // Map provinces to regions
+    const getRegionFromProvince = (province) => {
+        const provinceToRegion = {
+            'ON': 'Central',
+            'QC': 'Central',
+            'BC': 'West',
+            'AB': 'West',
+            'SK': 'West',
+            'MB': 'West',
+            'NS': 'East',
+            'NB': 'East',
+            'PE': 'East',
+            'NL': 'East',
+            'YT': 'North',
+            'NT': 'North',
+            'NU': 'North'
+        };
+        return provinceToRegion[province] || 'Central';
+    };
+
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -60,7 +80,12 @@ function ChallengesPage() {
                 axios.get("http://localhost:5000/api/challenges"),
                 axios.get("http://localhost:5000/api/challenges/stats"),
             ]);
-            setChallenges(challengesRes.data || []);
+            // Add region field to challenges based on province
+            const challengesWithRegion = (challengesRes.data || []).map(challenge => ({
+                ...challenge,
+                region: challenge.region || getRegionFromProvince(challenge.province)
+            }));
+            setChallenges(challengesWithRegion);
             setStats(statsRes.data || mockStats);
         } catch (apiError) {
             console.warn("Using mock data:", apiError.message);

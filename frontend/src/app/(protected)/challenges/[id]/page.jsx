@@ -24,6 +24,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import PersonIcon from "@mui/icons-material/Person";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useRouter } from "next/navigation";
 import withAuth from "@/components/auth/withAuth";
 import { useAuthContext } from "@/context/AuthContext";
@@ -180,12 +181,32 @@ function ChallengeDetailsPage({ params }) {
 
     return (
         <Box sx={{ backgroundColor: "#f8fafc", minHeight: "100vh", pb: 4 }}>
+            {/* Back Button */}
+            <Container maxWidth="xl" sx={{ pt: 3 }}>
+                <Button
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => router.push('/challenges')}
+                    sx={{
+                        color: "#64748b",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        "&:hover": {
+                            backgroundColor: "#f1f5f9",
+                            color: "#1e293b",
+                        },
+                    }}
+                >
+                    Back to Challenges
+                </Button>
+            </Container>
+
             {/* Hero Banner */}
             <Box
                 sx={{
                     position: "relative",
                     height: { xs: "280px", sm: "360px", md: "420px" },
                     overflow: "hidden",
+                    mt: 2,
                 }}
             >
                 <Box
@@ -275,8 +296,8 @@ function ChallengeDetailsPage({ params }) {
 
             <Container maxWidth="xl" sx={{ mt: { xs: -2, sm: -3 }, position: "relative", zIndex: 2 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }}>
-                    {/* Main Content Area */}
-                    <Grid item xs={12} lg={8}>
+                    {/* Left Column - Main Content */}
+                    <Grid item xs={12} md={8}>
                         {/* Description Card */}
                         <Paper
                             sx={{
@@ -297,7 +318,7 @@ function ChallengeDetailsPage({ params }) {
                         {/* Progress Cards Row */}
                         <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
                             {/* Overall Progress */}
-                            <Grid item xs={12} sm={joined ? 6 : 12}>
+                            <Grid item xs={12} sm={6}>
                                 <Paper
                                     sx={{
                                         p: { xs: 2.5, sm: 3 },
@@ -340,49 +361,63 @@ function ChallengeDetailsPage({ params }) {
                             </Grid>
 
                             {/* User Contribution */}
-                            {joined && (
-                                <Grid item xs={12} sm={6}>
-                                    <Paper
-                                        sx={{
-                                            p: { xs: 2.5, sm: 3 },
-                                            borderRadius: "20px",
-                                            boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                                            background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
-                                            color: "white",
-                                            height: "100%",
-                                        }}
-                                    >
-                                        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                                            <PersonIcon sx={{ fontSize: 32, mr: 1.5 }} />
-                                            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                                                Your Impact
+                            <Grid item xs={12} sm={6}>
+                                <Paper
+                                    sx={{
+                                        p: { xs: 2.5, sm: 3 },
+                                        borderRadius: "20px",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                        background: joined 
+                                            ? "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
+                                            : "linear-gradient(135deg, #64748b 0%, #475569 100%)",
+                                        color: "white",
+                                        height: "100%",
+                                    }}
+                                >
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                                        <PersonIcon sx={{ fontSize: 32, mr: 1.5 }} />
+                                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                            {joined ? "Your Impact" : "Join to Track"}
+                                        </Typography>
+                                    </Box>
+                                    {joined ? (
+                                        <>
+                                            <Typography variant="h3" sx={{ fontWeight: 900, mb: 0.5 }}>
+                                                {userTrashCollected.toLocaleString()}
                                             </Typography>
-                                        </Box>
-                                        <Typography variant="h3" sx={{ fontWeight: 900, mb: 0.5 }}>
-                                            {userTrashCollected.toLocaleString()}
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
-                                            items collected by you
-                                        </Typography>
-                                        <LinearProgress
-                                            variant="determinate"
-                                            value={userProgress}
-                                            sx={{
-                                                height: 10,
-                                                borderRadius: 5,
-                                                backgroundColor: "rgba(255,255,255,0.3)",
-                                                "& .MuiLinearProgress-bar": {
-                                                    backgroundColor: "white",
+                                            <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
+                                                items collected by you
+                                            </Typography>
+                                            <LinearProgress
+                                                variant="determinate"
+                                                value={userProgress}
+                                                sx={{
+                                                    height: 10,
                                                     borderRadius: 5,
-                                                },
-                                            }}
-                                        />
-                                        <Typography variant="caption" sx={{ mt: 1, display: "block", opacity: 0.9 }}>
-                                            {userProgress.toFixed(1)}% of Goal
-                                        </Typography>
-                                    </Paper>
-                                </Grid>
-                            )}
+                                                    backgroundColor: "rgba(255,255,255,0.3)",
+                                                    "& .MuiLinearProgress-bar": {
+                                                        backgroundColor: "white",
+                                                        borderRadius: 5,
+                                                    },
+                                                }}
+                                            />
+                                            <Typography variant="caption" sx={{ mt: 1, display: "block", opacity: 0.9 }}>
+                                                {userProgress.toFixed(1)}% of Goal
+                                            </Typography>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Typography variant="h3" sx={{ fontWeight: 900, mb: 0.5 }}>
+                                                0
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
+                                                Join to start tracking your impact
+                                            </Typography>
+                                            <Box sx={{ height: 10, backgroundColor: "rgba(255,255,255,0.3)", borderRadius: 5 }} />
+                                        </>
+                                    )}
+                                </Paper>
+                            </Grid>
                         </Grid>
 
                         {/* Trash Categories */}
@@ -442,14 +477,16 @@ function ChallengeDetailsPage({ params }) {
                         </Paper>
                     </Grid>
 
-                    {/* Sidebar - Action Panel */}
-                    <Grid item xs={12} lg={4}>
-                        <Box sx={{ position: { lg: "sticky" }, top: { lg: 20 } }}>
+                    {/* Right Column - Action Panel & Info */}
+                    <Grid item xs={12} md={4}>
+                        <Box sx={{ position: { md: "sticky" }, top: { md: 20 } }}>
+                            {/* Action Card */}
                             <Paper
                                 sx={{
                                     p: { xs: 2.5, sm: 3.5 },
                                     borderRadius: "20px",
                                     boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                    mb: 3,
                                 }}
                             >
                                 {!joined ? (
@@ -631,6 +668,93 @@ function ChallengeDetailsPage({ params }) {
                                         )}
                                     </Box>
                                 )}
+                            </Paper>
+
+                            {/* Challenge Details Info Card */}
+                            <Paper
+                                sx={{
+                                    p: { xs: 2.5, sm: 3.5 },
+                                    borderRadius: "20px",
+                                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                }}
+                            >
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: "#1e293b" }}>
+                                    Challenge Details
+                                </Typography>
+                                
+                                <Stack spacing={2.5}>
+                                    {/* Location */}
+                                    <Box>
+                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                            <LocationOnIcon sx={{ fontSize: 20, color: "#0ea5e9", mr: 1 }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
+                                                Location
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4 }}>
+                                            {challenge.locationName}
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Timeline */}
+                                    <Box>
+                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                            <CalendarTodayIcon sx={{ fontSize: 18, color: "#8b5cf6", mr: 1 }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
+                                                Timeline
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body2" sx={{ color: "#1e293b", pl: 4 }}>
+                                            <strong>Start:</strong> {formatDateReadable(challenge.startDate)}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: "#1e293b", pl: 4 }}>
+                                            <strong>End:</strong> {formatDateReadable(challenge.endDate)}
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Goal */}
+                                    <Box>
+                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                            <EmojiEventsIcon sx={{ fontSize: 20, color: "#f59e0b", mr: 1 }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
+                                                Goal
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4 }}>
+                                            {challenge.goal.toLocaleString()} {challenge.goalUnit}
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Volunteers */}
+                                    <Box>
+                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                            <PeopleIcon sx={{ fontSize: 20, color: "#10b981", mr: 1 }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
+                                                Volunteers
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4 }}>
+                                            {challenge.totalVolunteers.toLocaleString()} volunteers joined
+                                        </Typography>
+                                    </Box>
+
+                                    {/* Status */}
+                                    <Box>
+                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                            <Box sx={{ width: 20, height: 20, borderRadius: "50%", 
+                                                backgroundColor: challenge.status === "active" ? "#10b981" : 
+                                                               challenge.status === "completed" ? "#6b7280" : "#f59e0b",
+                                                mr: 1
+                                            }} />
+                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
+                                                Status
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4, textTransform: "capitalize" }}>
+                                            {challenge.status}
+                                        </Typography>
+                                    </Box>
+                                </Stack>
                             </Paper>
                         </Box>
                     </Grid>
