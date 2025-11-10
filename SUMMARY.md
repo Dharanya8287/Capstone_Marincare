@@ -35,7 +35,16 @@ This repository now contains **comprehensive documentation** for implementing th
      - Success criteria and testing guidelines
    - **Who should read it:** Everyone (track progress), Project manager (monitor)
 
-4. **[SUMMARY.md](./SUMMARY.md)** *(This file)*
+4. **[ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)** *(25KB)*
+   - **What it covers:**
+     - Visual ASCII diagrams of system architecture
+     - Data flow diagrams for upload, join, dashboard
+     - Authentication flow diagram
+     - Database relationships
+     - Scalability considerations
+   - **Who should read it:** Backend developers (understand flows), Frontend developers (integration points)
+
+5. **[SUMMARY.md](./SUMMARY.md)** *(This file)*
    - **What it covers:**
      - High-level overview of all documentation
      - Quick reference for key concepts
