@@ -17,6 +17,8 @@ frontend/.vercel
 /dist
 
 # Environment variables
+# Firebase credentials
+backend/src/config/serviceAccount.json
 backend/src/config/serviceAccountKey.json
 .env
 .env*.local
