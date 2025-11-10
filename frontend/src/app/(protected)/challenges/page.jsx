@@ -30,6 +30,7 @@ import StatsCard from "@/components/common/StatCard";
 import ChallengeCard from "@/components/cards/challengeCard";
 import CTASection from "@/components/sections/CTASection";
 import withAuth from "@/components/auth/withAuth";
+import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
 
 // Import mock data as fallback
 import { challenges as mockChallenges, mockStats, regions as regionList } from "@/data/challenges";
@@ -38,6 +39,7 @@ function ChallengesPage() {
     const [challenges, setChallenges] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { joinedChallenges } = useJoinedChallenges();
     const [selectedRegion, setSelectedRegion] = useState("All");
     const [selectedStatus, setSelectedStatus] = useState("All");
 
@@ -51,26 +53,34 @@ function ChallengesPage() {
     // RegionList
     const uniqueRegions = ["All", ...new Set(regionList.filter((r) => r && r !== "All"))];
 
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [challengesRes, statsRes] = await Promise.all([
+                axios.get("http://localhost:5000/api/challenges"),
+                axios.get("http://localhost:5000/api/challenges/stats"),
+            ]);
+            setChallenges(challengesRes.data || []);
+            setStats(statsRes.data || mockStats);
+        } catch (apiError) {
+            console.warn("Using mock data:", apiError.message);
+            setChallenges(mockChallenges);
+            setStats(mockStats);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const [challengesRes, statsRes] = await Promise.all([
-                    axios.get("http://localhost:5000/api/challenges"),
-                    axios.get("http://localhost:5000/api/challenges/stats"),
-                ]);
-                setChallenges(challengesRes.data || []);
-                setStats(statsRes.data || mockStats);
-            } catch (apiError) {
-                console.warn("Using mock data:", apiError.message);
-                setChallenges(mockChallenges);
-                setStats(mockStats);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchData();
     }, []);
+
+    // Refresh challenges when user joins/leaves a challenge
+    useEffect(() => {
+        if (joinedChallenges.length >= 0) {
+            fetchData();
+        }
+    }, [joinedChallenges]);
 
     // Safer filter logic
     const filterChallenges = (challengeList) => {

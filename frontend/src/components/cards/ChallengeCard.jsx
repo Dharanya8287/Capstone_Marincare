@@ -12,7 +12,9 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PeopleIcon from "@mui/icons-material/People";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/navigation";
+import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
 
 const ChallengeCard = ({ challenge }) => {
     const {
@@ -29,6 +31,8 @@ const ChallengeCard = ({ challenge }) => {
     } = challenge;
 
     const router = useRouter();
+    const { isJoined } = useJoinedChallenges();
+    const joined = isJoined(_id);
 
     const handleCardClick = () => {
         router.push(`/challenges/${_id}`);  // FIXED: Changed from /challenges/ to /challenges/
@@ -179,8 +183,9 @@ const ChallengeCard = ({ challenge }) => {
                         <Button
                             variant="contained"
                             size="small"
+                            startIcon={joined ? <CheckCircleIcon /> : null}
                             sx={{
-                                backgroundColor: "#0ea5e9",
+                                backgroundColor: joined ? "#10b981" : "#0ea5e9",
                                 color: "white",
                                 textTransform: "none",
                                 fontWeight: 600,
@@ -188,13 +193,13 @@ const ChallengeCard = ({ challenge }) => {
                                 py: 0.5,
                                 borderRadius: "6px",
                                 "&:hover": {
-                                    backgroundColor: "#0284c7",
+                                    backgroundColor: joined ? "#059669" : "#0284c7",
                                 },
                                 cursor: "pointer",
                             }}
                             onClick={handleButtonClick}
                         >
-                            Join
+                            {joined ? "Joined" : "Join"}
                         </Button>
                     )}
                 </Box>

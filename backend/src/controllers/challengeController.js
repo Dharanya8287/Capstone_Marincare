@@ -141,12 +141,12 @@ export const leaveChallenge = async (req, res) => {
         });
 
         // Decrement challenge volunteer count (ensure it doesn't go below 0)
+        const currentChallenge = await Challenge.findById(id);
+        const newVolunteerCount = Math.max(0, currentChallenge.totalVolunteers - 1);
+        
         const updatedChallenge = await Challenge.findByIdAndUpdate(
             id,
-            { 
-                $inc: { totalVolunteers: -1 },
-                $max: { totalVolunteers: 0 }
-            },
+            { totalVolunteers: newVolunteerCount },
             { new: true }
         );
 
