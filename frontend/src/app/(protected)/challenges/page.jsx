@@ -56,8 +56,8 @@ function ChallengesPage() {
             try {
                 setLoading(true);
                 const [challengesRes, statsRes] = await Promise.all([
-                    axios.get("/api/challenges"),
-                    axios.get("/api/challenges/stats"),
+                    axios.get("http://localhost:5000/api/challenges"),
+                    axios.get("http://localhost:5000/api/challenges/stats"),
                 ]);
                 setChallenges(challengesRes.data || []);
                 setStats(statsRes.data || mockStats);

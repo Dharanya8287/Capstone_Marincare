@@ -12,6 +12,8 @@ import {
     Grid,
     IconButton,
     Stack,
+    Alert,
+    Snackbar,
 } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -26,20 +28,22 @@ import { useRouter } from "next/navigation";
 import withAuth from "@/components/auth/withAuth";
 import { useAuthContext } from "@/context/AuthContext";
 import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
-import { challenges as mockChallenges } from "@/data/challenges";
+import { apiCall } from "@/utils/api";
 
 function ChallengeDetailsPage({ params }) {
     const { id } = use(params);
     const { user } = useAuthContext();
-    const { joinChallenge, isJoined } = useJoinedChallenges();
+    const { joinChallenge, leaveChallenge, isJoined, refreshJoinedChallenges } = useJoinedChallenges();
     const router = useRouter();
     const fileInputRef = useRef(null);
 
     const [challenge, setChallenge] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploading, setUploading] = useState(false);
     const [userTrashCollected, setUserTrashCollected] = useState(245);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     const [trashCategories] = useState([
         { type: "Plastic", count: 150, color: "#3b82f6", icon: "🥤" },
@@ -49,18 +53,71 @@ function ChallengeDetailsPage({ params }) {
         { type: "Other", count: 20, color: "#6b7280", icon: "🗑️" },
     ]);
 
+    // Fetch challenge from backend
     useEffect(() => {
-        setLoading(true);
-        const foundChallenge = mockChallenges.find((c) => c._id === id);
-        setChallenge(foundChallenge || null);
-        setLoading(false);
+        const fetchChallenge = async () => {
+            try {
+                setLoading(true);
+                const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+                setChallenge(response.data);
+            } catch (error) {
+                console.error('Error fetching challenge:', error);
+                setSnackbar({ open: true, message: 'Error loading challenge', severity: 'error' });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchChallenge();
     }, [id]);
 
     const joined = challenge ? isJoined(challenge._id) : false;
 
-    const handleJoin = () => {
-        if (challenge) {
-            joinChallenge(challenge);
+    const handleJoin = async () => {
+        if (!challenge) return;
+        
+        try {
+            setActionLoading(true);
+            await joinChallenge(challenge._id);
+            
+            // Refresh challenge data to get updated volunteer count
+            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            setChallenge(response.data);
+            
+            setSnackbar({ open: true, message: 'Successfully joined the challenge!', severity: 'success' });
+        } catch (error) {
+            console.error('Error joining challenge:', error);
+            setSnackbar({ 
+                open: true, 
+                message: error.response?.data?.message || 'Error joining challenge', 
+                severity: 'error' 
+            });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleLeave = async () => {
+        if (!challenge) return;
+        
+        try {
+            setActionLoading(true);
+            await leaveChallenge(challenge._id);
+            
+            // Refresh challenge data to get updated volunteer count
+            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            setChallenge(response.data);
+            
+            setSnackbar({ open: true, message: 'Successfully left the challenge', severity: 'info' });
+        } catch (error) {
+            console.error('Error leaving challenge:', error);
+            setSnackbar({ 
+                open: true, 
+                message: error.response?.data?.message || 'Error leaving challenge', 
+                severity: 'error' 
+            });
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -95,6 +152,10 @@ function ChallengeDetailsPage({ params }) {
         if (!date) return "";
         const d = new Date(date);
         return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
     };
 
     if (loading)
@@ -420,6 +481,7 @@ function ChallengeDetailsPage({ params }) {
                                             fullWidth
                                             size="large"
                                             onClick={handleJoin}
+                                            disabled={actionLoading}
                                             sx={{
                                                 background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
                                                 color: "white",
@@ -433,9 +495,13 @@ function ChallengeDetailsPage({ params }) {
                                                     background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
                                                     boxShadow: "0 12px 32px rgba(14, 165, 233, 0.4)",
                                                 },
+                                                "&:disabled": {
+                                                    background: "#e2e8f0",
+                                                    color: "#94a3b8",
+                                                },
                                             }}
                                         >
-                                            Join Challenge
+                                            {actionLoading ? <CircularProgress size={24} color="inherit" /> : "Join Challenge"}
                                         </Button>
                                     </Box>
                                 ) : (
@@ -461,47 +527,107 @@ function ChallengeDetailsPage({ params }) {
                                         </Box>
 
                                         {isActive && (
-                                            <Button
-                                                variant="contained"
-                                                fullWidth
-                                                size="large"
-                                                startIcon={<CloudUploadIcon />}
-                                                onClick={handleGoToUpload}
-                                                sx={{
-                                                    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                                    color: "white",
-                                                    py: 2,
-                                                    borderRadius: "14px",
-                                                    textTransform: "none",
-                                                    fontWeight: 700,
-                                                    fontSize: "1.125rem",
-                                                    boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)",
-                                                    "&:hover": {
-                                                        background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
-                                                        boxShadow: "0 12px 32px rgba(16, 185, 129, 0.4)",
-                                                    },
-                                                }}
-                                            >
-                                                Go to Upload Page
-                                            </Button>
+                                            <>
+                                                <Button
+                                                    variant="contained"
+                                                    fullWidth
+                                                    size="large"
+                                                    startIcon={<CloudUploadIcon />}
+                                                    onClick={handleGoToUpload}
+                                                    sx={{
+                                                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                                        color: "white",
+                                                        py: 2,
+                                                        borderRadius: "14px",
+                                                        textTransform: "none",
+                                                        fontWeight: 700,
+                                                        fontSize: "1.125rem",
+                                                        boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)",
+                                                        mb: 2,
+                                                        "&:hover": {
+                                                            background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                                                            boxShadow: "0 12px 32px rgba(16, 185, 129, 0.4)",
+                                                        },
+                                                    }}
+                                                >
+                                                    Go to Upload Page
+                                                </Button>
+                                                <Button
+                                                    variant="outlined"
+                                                    fullWidth
+                                                    size="medium"
+                                                    onClick={handleLeave}
+                                                    disabled={actionLoading}
+                                                    sx={{
+                                                        borderColor: "#ef4444",
+                                                        color: "#ef4444",
+                                                        py: 1.5,
+                                                        borderRadius: "14px",
+                                                        textTransform: "none",
+                                                        fontWeight: 600,
+                                                        fontSize: "1rem",
+                                                        "&:hover": {
+                                                            borderColor: "#dc2626",
+                                                            color: "#dc2626",
+                                                            backgroundColor: "#fef2f2",
+                                                        },
+                                                        "&:disabled": {
+                                                            borderColor: "#e2e8f0",
+                                                            color: "#94a3b8",
+                                                        },
+                                                    }}
+                                                >
+                                                    {actionLoading ? <CircularProgress size={20} color="inherit" /> : "Leave Challenge"}
+                                                </Button>
+                                            </>
                                         )}
 
                                         {!isActive && (
-                                            <Box
-                                                sx={{
-                                                    textAlign: "center",
-                                                    py: 4,
-                                                    px: 2,
-                                                    backgroundColor: "#fef3c7",
-                                                    borderRadius: "16px",
-                                                    border: "2px dashed #f59e0b",
-                                                }}
-                                            >
-                                                <Typography sx={{ fontSize: "3rem", mb: 1 }}>⏰</Typography>
-                                                <Typography variant="body2" sx={{ color: "#92400e", fontWeight: 600 }}>
-                                                    Uploads are only available for active challenges
-                                                </Typography>
-                                            </Box>
+                                            <>
+                                                <Box
+                                                    sx={{
+                                                        textAlign: "center",
+                                                        py: 4,
+                                                        px: 2,
+                                                        backgroundColor: "#fef3c7",
+                                                        borderRadius: "16px",
+                                                        border: "2px dashed #f59e0b",
+                                                        mb: 2,
+                                                    }}
+                                                >
+                                                    <Typography sx={{ fontSize: "3rem", mb: 1 }}>⏰</Typography>
+                                                    <Typography variant="body2" sx={{ color: "#92400e", fontWeight: 600 }}>
+                                                        Uploads are only available for active challenges
+                                                    </Typography>
+                                                </Box>
+                                                <Button
+                                                    variant="outlined"
+                                                    fullWidth
+                                                    size="medium"
+                                                    onClick={handleLeave}
+                                                    disabled={actionLoading}
+                                                    sx={{
+                                                        borderColor: "#ef4444",
+                                                        color: "#ef4444",
+                                                        py: 1.5,
+                                                        borderRadius: "14px",
+                                                        textTransform: "none",
+                                                        fontWeight: 600,
+                                                        fontSize: "1rem",
+                                                        "&:hover": {
+                                                            borderColor: "#dc2626",
+                                                            color: "#dc2626",
+                                                            backgroundColor: "#fef2f2",
+                                                        },
+                                                        "&:disabled": {
+                                                            borderColor: "#e2e8f0",
+                                                            color: "#94a3b8",
+                                                        },
+                                                    }}
+                                                >
+                                                    {actionLoading ? <CircularProgress size={20} color="inherit" /> : "Leave Challenge"}
+                                                </Button>
+                                            </>
                                         )}
                                     </Box>
                                 )}
@@ -510,6 +636,22 @@ function ChallengeDetailsPage({ params }) {
                     </Grid>
                 </Grid>
             </Container>
+
+            {/* Snackbar for notifications */}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={4000} 
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity} 
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }
