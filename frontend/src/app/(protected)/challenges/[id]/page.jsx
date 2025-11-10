@@ -334,12 +334,11 @@ function ChallengeDetailsPage({ params }) {
 
             <Container maxWidth="xl" sx={{ mt: { xs: -2, sm: -3 }, position: "relative", zIndex: 2 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }}>
-                    {/* Left Column - Main Content */}
-                    <Grid item xs={12} lg={8}>
-                        {/* Progress Cards Row - Full Width on Mobile, Side by Side on Desktop */}
-                        <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
+                    {/* Top Row - Progress Cards (Full Width) */}
+                    <Grid item xs={12}>
+                        <Grid container spacing={{ xs: 2, md: 3 }}>
                             {/* Overall Progress */}
-                            <Grid item xs={12} sm={6}>
+                            <Grid item xs={12} sm={6} md={4}>
                                 <Paper
                                     sx={{
                                         p: { xs: 2.5, sm: 3 },
@@ -382,7 +381,7 @@ function ChallengeDetailsPage({ params }) {
                             </Grid>
 
                             {/* User Contribution */}
-                            <Grid item xs={12} sm={6}>
+                            <Grid item xs={12} sm={6} md={4}>
                                 <Paper
                                     sx={{
                                         p: { xs: 2.5, sm: 3 },
@@ -439,86 +438,52 @@ function ChallengeDetailsPage({ params }) {
                                     )}
                                 </Paper>
                             </Grid>
-                        </Grid>
 
-                        {/* Description Card */}
-                        <Paper
-                            sx={{
-                                p: { xs: 2.5, sm: 3.5 },
-                                borderRadius: "20px",
-                                mb: { xs: 2, md: 3 },
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            }}
-                        >
-                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: "#1e293b" }}>
-                                About This Challenge
-                            </Typography>
-                            <Typography variant="body1" sx={{ color: "#475569", lineHeight: 1.8 }}>
-                                {challenge.description}
-                            </Typography>
-                        </Paper>
-
-                        {/* Trash Categories */}
-                        <Paper
-                            sx={{
-                                p: { xs: 2.5, sm: 3.5 },
-                                borderRadius: "20px",
-                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                            }}
-                        >
-                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
-                                <Box>
-                                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#1e293b", mb: 0.5 }}>
-                                        Trash Categories
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: "#64748b" }}>
-                                        AI-powered classification
-                                    </Typography>
-                                </Box>
-                                <TrendingUpIcon sx={{ color: "#10b981", fontSize: 32 }} />
-                            </Box>
-                            <Grid container spacing={2}>
-                                {trashCategories.map((category, idx) => (
-                                    <Grid item xs={6} sm={4} md={4} lg={2} key={category.key}>
-                                        <Box
-                                            sx={{
-                                                p: 2.5,
-                                                borderRadius: "16px",
-                                                backgroundColor: `${category.color}15`,
-                                                border: `2px solid ${category.color}30`,
-                                                textAlign: "center",
-                                                transition: "all 0.3s ease",
-                                                cursor: "pointer",
-                                                "&:hover": {
-                                                    transform: "translateY(-8px)",
-                                                    boxShadow: `0 12px 24px ${category.color}30`,
-                                                    borderColor: category.color,
-                                                },
-                                            }}
-                                        >
-                                            <Typography variant="h3" sx={{ mb: 1 }}>
-                                                {category.icon}
+                            {/* Challenge Details Card (Now in Top Row) */}
+                            <Grid item xs={12} md={4}>
+                                <Paper
+                                    sx={{
+                                        p: { xs: 2.5, sm: 3 },
+                                        borderRadius: "20px",
+                                        boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                        color: "white",
+                                        height: "100%",
+                                    }}
+                                >
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                                        <PeopleIcon sx={{ fontSize: 32, mr: 1.5 }} />
+                                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                                            Challenge Info
+                                        </Typography>
+                                    </Box>
+                                    <Stack spacing={1.5}>
+                                        <Box>
+                                            <Typography variant="caption" sx={{ opacity: 0.9, display: "block" }}>
+                                                Volunteers
                                             </Typography>
-                                            <Typography
-                                                variant="h5"
-                                                sx={{ fontWeight: 800, color: category.color, mb: 0.5 }}
-                                            >
-                                                {category.count}
-                                            </Typography>
-                                            <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
-                                                {category.type}
+                                            <Typography variant="h4" sx={{ fontWeight: 800 }}>
+                                                {challenge.totalVolunteers.toLocaleString()}
                                             </Typography>
                                         </Box>
-                                    </Grid>
-                                ))}
+                                        <Box>
+                                            <Typography variant="caption" sx={{ opacity: 0.9, display: "block" }}>
+                                                Timeline
+                                            </Typography>
+                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                                {formatDateReadable(challenge.startDate)} - {formatDateReadable(challenge.endDate)}
+                                            </Typography>
+                                        </Box>
+                                    </Stack>
+                                </Paper>
                             </Grid>
-                        </Paper>
+                        </Grid>
                     </Grid>
 
-                    {/* Right Column - Action Panel & Info - Always Visible */}
-                    <Grid item xs={12} lg={4}>
-                        <Box sx={{ position: { lg: "sticky" }, top: { lg: 20 } }}>
-                            {/* Action Card */}
+                    {/* Main Content Row */}
+                    <Grid item xs={12} md={8}>
+                        {/* Action Card - Now in Main Content */}
+                        {!joined ? (
                             <Paper
                                 sx={{
                                     p: { xs: 2.5, sm: 3.5 },
@@ -527,20 +492,13 @@ function ChallengeDetailsPage({ params }) {
                                     mb: 3,
                                 }}
                             >
-                                {!joined ? (
-                                    <Box>
-                                        <Typography
-                                            variant="h5"
-                                            sx={{ fontWeight: 800, mb: 2, color: "#1e293b", textAlign: "center" }}
-                                        >
-                                            Join This Challenge
-                                        </Typography>
+                                <Grid container spacing={3} alignItems="center">
+                                    <Grid item xs={12} sm={6}>
                                         <Box
                                             sx={{
                                                 textAlign: "center",
                                                 py: 3,
                                                 px: 2,
-                                                mb: 3,
                                                 backgroundColor: "#f0f9ff",
                                                 borderRadius: "16px",
                                                 border: "2px dashed #0ea5e9",
@@ -548,9 +506,17 @@ function ChallengeDetailsPage({ params }) {
                                         >
                                             <Typography sx={{ fontSize: "4rem", mb: 1 }}>🌊</Typography>
                                             <Typography variant="body1" sx={{ color: "#0284c7", fontWeight: 600 }}>
-                                                Be part of the cleanup movement and make a real difference!
+                                                Be part of the cleanup movement!
                                             </Typography>
                                         </Box>
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <Typography
+                                            variant="h5"
+                                            sx={{ fontWeight: 800, mb: 2, color: "#1e293b" }}
+                                        >
+                                            Join This Challenge
+                                        </Typography>
                                         <Button
                                             variant="contained"
                                             fullWidth
@@ -578,15 +544,25 @@ function ChallengeDetailsPage({ params }) {
                                         >
                                             {actionLoading ? <CircularProgress size={24} color="inherit" /> : "Join Challenge"}
                                         </Button>
-                                    </Box>
-                                ) : (
-                                    <Box>
+                                    </Grid>
+                                </Grid>
+                            </Paper>
+                        ) : (
+                            <Paper
+                                sx={{
+                                    p: { xs: 2.5, sm: 3.5 },
+                                    borderRadius: "20px",
+                                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                    mb: 3,
+                                }}
+                            >
+                                <Grid container spacing={3} alignItems="center">
+                                    <Grid item xs={12} sm={6}>
                                         <Box
                                             sx={{
                                                 textAlign: "center",
                                                 py: 2,
                                                 px: 2,
-                                                mb: 3,
                                                 backgroundColor: "#dcfce7",
                                                 borderRadius: "16px",
                                                 border: "2px solid #10b981",
@@ -600,9 +576,10 @@ function ChallengeDetailsPage({ params }) {
                                                 Start uploading your cleanup photos
                                             </Typography>
                                         </Box>
-
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
                                         {isActive && (
-                                            <>
+                                            <Stack spacing={2}>
                                                 <Button
                                                     variant="contained"
                                                     fullWidth
@@ -618,7 +595,6 @@ function ChallengeDetailsPage({ params }) {
                                                         fontWeight: 700,
                                                         fontSize: "1.125rem",
                                                         boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)",
-                                                        mb: 2,
                                                         "&:hover": {
                                                             background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
                                                             boxShadow: "0 12px 32px rgba(16, 185, 129, 0.4)",
@@ -654,25 +630,23 @@ function ChallengeDetailsPage({ params }) {
                                                 >
                                                     {actionLoading ? <CircularProgress size={20} color="inherit" /> : "Leave Challenge"}
                                                 </Button>
-                                            </>
+                                            </Stack>
                                         )}
-
                                         {!isActive && (
-                                            <>
+                                            <Stack spacing={2}>
                                                 <Box
                                                     sx={{
                                                         textAlign: "center",
-                                                        py: 4,
+                                                        py: 3,
                                                         px: 2,
                                                         backgroundColor: "#fef3c7",
                                                         borderRadius: "16px",
                                                         border: "2px dashed #f59e0b",
-                                                        mb: 2,
                                                     }}
                                                 >
-                                                    <Typography sx={{ fontSize: "3rem", mb: 1 }}>⏰</Typography>
+                                                    <Typography sx={{ fontSize: "2.5rem", mb: 1 }}>⏰</Typography>
                                                     <Typography variant="body2" sx={{ color: "#92400e", fontWeight: 600 }}>
-                                                        Uploads are only available for active challenges
+                                                        Uploads only available for active challenges
                                                     </Typography>
                                                 </Box>
                                                 <Button
@@ -702,99 +676,184 @@ function ChallengeDetailsPage({ params }) {
                                                 >
                                                     {actionLoading ? <CircularProgress size={20} color="inherit" /> : "Leave Challenge"}
                                                 </Button>
-                                            </>
+                                            </Stack>
                                         )}
-                                    </Box>
-                                )}
+                                    </Grid>
+                                </Grid>
                             </Paper>
+                        )}
 
-                            {/* Challenge Details Info Card - Always Visible */}
-                            <Paper
-                                sx={{
-                                    p: { xs: 2.5, sm: 3.5 },
-                                    borderRadius: "20px",
-                                    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                                }}
-                            >
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: "#1e293b" }}>
-                                    Challenge Details
-                                </Typography>
-                                
-                                <Stack spacing={2.5}>
-                                    {/* Location */}
-                                    <Box>
-                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                            <LocationOnIcon sx={{ fontSize: 20, color: "#0ea5e9", mr: 1 }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
-                                                Location
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4 }}>
-                                            {challenge.locationName}
+                        {/* Description Card */}
+                        <Paper
+                            sx={{
+                                p: { xs: 2.5, sm: 3.5 },
+                                borderRadius: "20px",
+                                mb: 3,
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                            }}
+                        >
+                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, color: "#1e293b" }}>
+                                About This Challenge
+                            </Typography>
+                            <Typography variant="body1" sx={{ color: "#475569", lineHeight: 1.8 }}>
+                                {challenge.description}
+                            </Typography>
+                        </Paper>
+                    </Grid>
+
+                    {/* Right Sidebar - Challenge Details */}
+                    <Grid item xs={12} md={4}>
+                        <Paper
+                            sx={{
+                                p: { xs: 2.5, sm: 3.5 },
+                                borderRadius: "20px",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                                position: { md: "sticky" },
+                                top: { md: 20 },
+                            }}
+                        >
+                            <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: "#1e293b" }}>
+                                Location & Details
+                            </Typography>
+                            
+                            <Stack spacing={3}>
+                                {/* Location */}
+                                <Box>
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                        <LocationOnIcon sx={{ fontSize: 22, color: "#0ea5e9", mr: 1 }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                            Location
                                         </Typography>
                                     </Box>
+                                    <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 600, pl: 4 }}>
+                                        {challenge.locationName}
+                                    </Typography>
+                                </Box>
 
-                                    {/* Timeline */}
-                                    <Box>
-                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                            <CalendarTodayIcon sx={{ fontSize: 18, color: "#8b5cf6", mr: 1 }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
-                                                Timeline
+                                {/* Province */}
+                                <Box>
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                        <Box sx={{ width: 22, height: 22, borderRadius: "4px", 
+                                            backgroundColor: "#8b5cf6",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            mr: 1
+                                        }}>
+                                            <Typography sx={{ color: "white", fontSize: "0.75rem", fontWeight: 800 }}>
+                                                {challenge.province}
                                             </Typography>
                                         </Box>
-                                        <Typography variant="body2" sx={{ color: "#1e293b", pl: 4 }}>
-                                            <strong>Start:</strong> {formatDateReadable(challenge.startDate)}
-                                        </Typography>
-                                        <Typography variant="body2" sx={{ color: "#1e293b", pl: 4 }}>
-                                            <strong>End:</strong> {formatDateReadable(challenge.endDate)}
+                                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                            Province
                                         </Typography>
                                     </Box>
+                                    <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 600, pl: 4 }}>
+                                        {challenge.province}
+                                            </Typography>
+                                </Box>
 
-                                    {/* Goal */}
-                                    <Box>
-                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                            <EmojiEventsIcon sx={{ fontSize: 20, color: "#f59e0b", mr: 1 }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
-                                                Goal
+                                {/* Goal */}
+                                <Box>
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                        <EmojiEventsIcon sx={{ fontSize: 22, color: "#f59e0b", mr: 1 }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                            Goal
+                                        </Typography>
+                                    </Box>
+                                    <Typography variant="h5" sx={{ color: "#1e293b", fontWeight: 800, pl: 4 }}>
+                                        {challenge.goal.toLocaleString()}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: "#64748b", pl: 4 }}>
+                                        {challenge.goalUnit}
+                                    </Typography>
+                                </Box>
+
+                                {/* Status */}
+                                <Box>
+                                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                                        <Box sx={{ width: 22, height: 22, borderRadius: "50%", 
+                                            backgroundColor: challenge.status === "active" ? "#10b981" : 
+                                                           challenge.status === "completed" ? "#6b7280" : "#f59e0b",
+                                            mr: 1
+                                        }} />
+                                        <Typography variant="body2" sx={{ fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                                            Status
+                                        </Typography>
+                                    </Box>
+                                    <Chip 
+                                        label={challenge.status.toUpperCase()} 
+                                        size="small"
+                                        sx={{ 
+                                            ml: 4,
+                                            backgroundColor: challenge.status === "active" ? "#10b981" : 
+                                                           challenge.status === "completed" ? "#6b7280" : "#f59e0b",
+                                            color: "white",
+                                            fontWeight: 700,
+                                            fontSize: "0.7rem",
+                                        }}
+                                    />
+                                </Box>
+                            </Stack>
+                        </Paper>
+                    </Grid>
+
+                    {/* Full Width - Trash Categories */}
+                    <Grid item xs={12}>
+                        <Paper
+                            sx={{
+                                p: { xs: 2.5, sm: 3.5 },
+                                borderRadius: "20px",
+                                boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+                            }}
+                        >
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 3 }}>
+                                <Box>
+                                    <Typography variant="h6" sx={{ fontWeight: 700, color: "#1e293b", mb: 0.5 }}>
+                                        Trash Categories
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: "#64748b" }}>
+                                        AI-powered classification • Real-time updates
+                                    </Typography>
+                                </Box>
+                                <TrendingUpIcon sx={{ color: "#10b981", fontSize: 32 }} />
+                            </Box>
+                            <Grid container spacing={2}>
+                                {trashCategories.map((category, idx) => (
+                                    <Grid item xs={6} sm={4} md={2} key={category.key}>
+                                        <Box
+                                            sx={{
+                                                p: 2.5,
+                                                borderRadius: "16px",
+                                                backgroundColor: `${category.color}15`,
+                                                border: `2px solid ${category.color}30`,
+                                                textAlign: "center",
+                                                transition: "all 0.3s ease",
+                                                cursor: "pointer",
+                                                "&:hover": {
+                                                    transform: "translateY(-8px)",
+                                                    boxShadow: `0 12px 24px ${category.color}30`,
+                                                    borderColor: category.color,
+                                                },
+                                            }}
+                                        >
+                                            <Typography variant="h3" sx={{ mb: 1 }}>
+                                                {category.icon}
+                                            </Typography>
+                                            <Typography
+                                                variant="h5"
+                                                sx={{ fontWeight: 800, color: category.color, mb: 0.5 }}
+                                            >
+                                                {category.count}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 600 }}>
+                                                {category.type}
                                             </Typography>
                                         </Box>
-                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4 }}>
-                                            {challenge.goal.toLocaleString()} {challenge.goalUnit}
-                                        </Typography>
-                                    </Box>
-
-                                    {/* Volunteers */}
-                                    <Box>
-                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                            <PeopleIcon sx={{ fontSize: 20, color: "#10b981", mr: 1 }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
-                                                Volunteers
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4 }}>
-                                            {challenge.totalVolunteers.toLocaleString()} volunteers joined
-                                        </Typography>
-                                    </Box>
-
-                                    {/* Status */}
-                                    <Box>
-                                        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                            <Box sx={{ width: 20, height: 20, borderRadius: "50%", 
-                                                backgroundColor: challenge.status === "active" ? "#10b981" : 
-                                                               challenge.status === "completed" ? "#6b7280" : "#f59e0b",
-                                                mr: 1
-                                            }} />
-                                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#64748b" }}>
-                                                Status
-                                            </Typography>
-                                        </Box>
-                                        <Typography variant="body1" sx={{ color: "#1e293b", fontWeight: 500, pl: 4, textTransform: "capitalize" }}>
-                                            {challenge.status}
-                                        </Typography>
-                                    </Box>
-                                </Stack>
-                            </Paper>
-                        </Box>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </Paper>
                     </Grid>
                 </Grid>
             </Container>
