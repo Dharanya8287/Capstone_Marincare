@@ -46,30 +46,68 @@ function ChallengeDetailsPage({ params }) {
     const [userTrashCollected, setUserTrashCollected] = useState(245);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-    const [trashCategories] = useState([
-        { type: "Plastic", count: 150, color: "#3b82f6", icon: "🥤" },
-        { type: "Paper", count: 85, color: "#10b981", icon: "📄" },
-        { type: "Metal", count: 45, color: "#f59e0b", icon: "🥫" },
-        { type: "Glass", count: 30, color: "#8b5cf6", icon: "🍾" },
-        { type: "Other", count: 20, color: "#6b7280", icon: "🗑️" },
-    ]);
+    // Trash categories mapping - matches backend predefined categories
+    const getCategoryDisplay = (key, count) => {
+        const categoryMap = {
+            plastic_bottle: { type: "Plastic Bottle", color: "#3b82f6", icon: "🥤" },
+            metal_can: { type: "Metal Can", color: "#f59e0b", icon: "🥫" },
+            plastic_bag: { type: "Plastic Bag", color: "#06b6d4", icon: "🛍️" },
+            paper_cardboard: { type: "Paper/Cardboard", color: "#10b981", icon: "📄" },
+            cigarette_butt: { type: "Cigarette Butt", color: "#ef4444", icon: "🚬" },
+            glass_bottle: { type: "Glass Bottle", color: "#8b5cf6", icon: "🍾" },
+        };
+        return { ...categoryMap[key], count: count || 0, key };
+    };
+
+    // Get trash categories from challenge wasteBreakdown
+    const getTrashCategories = () => {
+        if (!challenge || !challenge.wasteBreakdown) return [];
+        
+        const breakdown = challenge.wasteBreakdown;
+        return [
+            getCategoryDisplay('plastic_bottle', breakdown.plastic_bottle),
+            getCategoryDisplay('metal_can', breakdown.metal_can),
+            getCategoryDisplay('plastic_bag', breakdown.plastic_bag),
+            getCategoryDisplay('paper_cardboard', breakdown.paper_cardboard),
+            getCategoryDisplay('cigarette_butt', breakdown.cigarette_butt),
+            getCategoryDisplay('glass_bottle', breakdown.glass_bottle),
+        ];
+    };
+
+    const trashCategories = getTrashCategories();
 
     // Fetch challenge from backend
-    useEffect(() => {
-        const fetchChallenge = async () => {
-            try {
+    const fetchChallenge = async () => {
+        try {
+            if (!loading) {
+                // Don't show loading spinner for refresh
+                const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+                setChallenge(response.data);
+            } else {
                 setLoading(true);
                 const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
                 setChallenge(response.data);
-            } catch (error) {
-                console.error('Error fetching challenge:', error);
-                setSnackbar({ open: true, message: 'Error loading challenge', severity: 'error' });
-            } finally {
                 setLoading(false);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching challenge:', error);
+            setSnackbar({ open: true, message: 'Error loading challenge', severity: 'error' });
+            if (loading) setLoading(false);
+        }
+    };
 
+    // Initial fetch
+    useEffect(() => {
         fetchChallenge();
+    }, [id]);
+
+    // Auto-refresh challenge data every 10 seconds to get latest stats
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            fetchChallenge();
+        }, 10000); // Refresh every 10 seconds
+
+        return () => clearInterval(intervalId);
     }, [id]);
 
     const joined = challenge ? isJoined(challenge._id) : false;
@@ -434,14 +472,14 @@ function ChallengeDetailsPage({ params }) {
                                         Trash Categories
                                     </Typography>
                                     <Typography variant="body2" sx={{ color: "#64748b" }}>
-                                        AI-powered classification (coming soon)
+                                        AI-powered classification
                                     </Typography>
                                 </Box>
                                 <TrendingUpIcon sx={{ color: "#10b981", fontSize: 32 }} />
                             </Box>
                             <Grid container spacing={2}>
                                 {trashCategories.map((category, idx) => (
-                                    <Grid item xs={6} sm={4} md={2.4} key={idx}>
+                                    <Grid item xs={6} sm={4} md={4} lg={2} key={category.key}>
                                         <Box
                                             sx={{
                                                 p: 2.5,

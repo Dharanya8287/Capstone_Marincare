@@ -136,8 +136,15 @@ function UploadPage() {
             );
 
             // The backend now returns a 200 with the result
-            setSuccess(res.data.message); // e.g., "Success! AI classified as: plastic_bottle"
+            const classifiedLabel = res.data.result?.label || 'unknown';
+            const displayMessage = `${res.data.message} - Category counts updated instantly!`;
+            setSuccess(displayMessage);
             setSelectedFiles([]);
+
+            // Show success for 2 seconds, then redirect to challenge details
+            setTimeout(() => {
+                router.push(`/challenges/${selectedChallenge}`);
+            }, 2000);
 
         } catch (err) {
             console.error("AI Upload error:", err);
@@ -185,8 +192,14 @@ function UploadPage() {
                 true // force refresh token
             );
 
-            setSuccess(res.data.message); // e.g., "Successfully logged 10 item(s)"
+            const displayMessage = `${res.data.message} - Category counts updated instantly!`;
+            setSuccess(displayMessage);
             setManualForm({ label: '', itemCount: 1 }); // Reset form
+
+            // Show success for 2 seconds, then redirect to challenge details
+            setTimeout(() => {
+                router.push(`/challenges/${selectedChallenge}`);
+            }, 2000);
 
         } catch (err) {
             console.error("Manual Log error:", err);
