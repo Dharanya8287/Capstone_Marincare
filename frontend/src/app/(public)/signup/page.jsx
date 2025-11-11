@@ -53,7 +53,7 @@ export default function SignupPage() {
     // This effect redirects the user away from the signup page if they are already logged in.
     useEffect(() => {
         if (isAuthenticated) {
-            router.push("/landing"); // Or your desired authenticated page
+            router.push("/home"); // Or your desired authenticated page
         }
     }, [isAuthenticated, router]);
 

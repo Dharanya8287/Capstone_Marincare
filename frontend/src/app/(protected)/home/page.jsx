@@ -24,7 +24,7 @@ import {
     MissionSection,
     MissionContent,
     MissionButton,
-} from "./landing.styles";
+} from "./home.styles";
 
 function LandingPage() {
     return (

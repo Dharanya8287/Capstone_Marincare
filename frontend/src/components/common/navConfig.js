@@ -7,7 +7,7 @@ import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import AddPhotoAlternateRoundedIcon from "@mui/icons-material/AddPhotoAlternateRounded";
 
 export const navItems = [
-    { label: "Home", path: "/landing", icon: HomeRoundedIcon },
+    { label: "Home", path: "/home", icon: HomeRoundedIcon },
     { label: "Challenges", path: "/challenges", icon: MilitaryTechRoundedIcon },
     { label: "Upload", path: "/upload", icon: AddPhotoAlternateRoundedIcon },
     { label: "Dashboard", path: "/dashboard", icon: DashboardRoundedIcon },
@@ -15,7 +15,7 @@ export const navItems = [
 ];
 
 export const mobileOrder = [
-    "/landing",
+    "/home",
     "/challenges",
     "/upload",
     "/dashboard",

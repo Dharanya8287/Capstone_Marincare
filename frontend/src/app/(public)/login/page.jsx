@@ -145,7 +145,7 @@ export default function LoginPage() {
             setLoading(true);
             await login(form.email, form.password);
             setLoginMessage("Login successful! Redirecting...");
-            setTimeout(() => router.push("/landing"), 1500);
+            setTimeout(() => router.push("/home"), 1500);
         } catch (err) {
             const msgMap = {
                 "auth/user-not-found": "No account found with this email.",
@@ -168,7 +168,7 @@ export default function LoginPage() {
             setGoogleLoading(true);
             await googleLogin();
             setLoginMessage("Signed in successfully with Google!");
-            setTimeout(() => router.push("/landing"), 1500);
+            setTimeout(() => router.push("/home"), 1500);
         } catch (err) {
             setFormErrors({ global: err.message || "Google login failed. Please try again later." });
         } finally {

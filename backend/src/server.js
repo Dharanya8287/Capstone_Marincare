@@ -17,6 +17,7 @@ app.use("/api/cleanups", cleanupRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/achievements", achievementsRoutes);
 app.use("/api/images", imageRoutes);
+
 app.get("/", (req, res) => {
     res.status(200).send("Server is running 🚀");
 });

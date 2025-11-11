@@ -16,23 +16,6 @@ export function AuthProvider({ children }) {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             setLoading(false);
-
-            // If the user is signed in, log the JWT token to the backend terminal
-            if (currentUser) {
-                try {
-                    const idToken = await currentUser.getIdToken(true);
-                    // Send token to backend for logging in terminal
-                    await fetch("http://localhost:5000/api/log-token", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({ token: idToken }),
-                    });
-                } catch (err) {
-                    // Ignore errors to avoid affecting auth flow
-                }
-            }
         });
 
         // Cleanup the listener when the component unmounts

@@ -13,7 +13,6 @@ export async function getIdToken(forceRefresh = false) {
 export async function apiCall(method, url, data = {}, forceRefresh = false) {
     const idToken = await getIdToken(forceRefresh);
 
-    // --- FIX for FormData ---
     // Check if data is FormData. If so, don't set Content-Type,
     // let the browser set it (it's special for multipart/form-data)
     const isFormData = data instanceof FormData;
