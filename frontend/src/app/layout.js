@@ -1,10 +1,7 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
 import AppLayoutWrapper from "@/components/AppLayoutWrapper";
 import { AuthProvider } from "@/context/AuthContext";
 import { JoinedChallengesProvider } from "@/context/JoinedChallengesContext";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
     title: "WaveGuard - Ocean Conservation Platform",
@@ -23,7 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning={true}>
-        <body className={inter.className}>
+        <body style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
         <AuthProvider>
             <JoinedChallengesProvider>
                 <AppLayoutWrapper>{children}</AppLayoutWrapper>
