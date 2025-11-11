@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { apiCall } from '@/utils/api';
-import { Box, Typography, Avatar, Button, TextField, Autocomplete, Switch } from '@mui/material';
+import { Box, Typography, Avatar, Button, TextField, Autocomplete, Switch, IconButton, CircularProgress } from '@mui/material';
 import {
     EmailOutlined,
     LocationOnOutlined,
@@ -19,6 +19,7 @@ import {
     Delete,
     VolunteerActivism,
     Filter3,
+    CameraAlt,
 } from '@mui/icons-material';
 import { styles } from './profile.styles';
 import withAuth from '@/components/auth/withAuth';
@@ -27,6 +28,8 @@ const ProfilePage = () => {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('profile');
     const [isEditing, setIsEditing] = useState(false);
+    const fileInputRef = useRef(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     // User profile state
     const [userProfile, setUserProfile] = useState({
@@ -236,6 +239,51 @@ const ProfilePage = () => {
         setSettings(originalSettings);
     };
 
+    const handleProfileImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleProfileImageChange = async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            console.error('Please select an image file');
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            console.error('File size must be less than 5MB');
+            return;
+        }
+
+        try {
+            setUploadingImage(true);
+
+            // Create FormData and append the image
+            const formData = new FormData();
+            formData.append('image', file);
+
+            // Upload to backend
+            const res = await apiCall('post', 'http://localhost:5000/api/profile/upload-image', formData);
+
+            if (res?.data?.profileImage) {
+                // Update user profile with new image URL
+                setUserProfile(prev => ({
+                    ...prev,
+                    profileImage: `http://localhost:5000${res.data.profileImage}`
+                }));
+                console.log('Profile image updated successfully');
+            }
+        } catch (error) {
+            console.error('Failed to upload profile image:', error);
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
     const getAchievementIcon = (iconType) => {
         switch (iconType) {
             case 'plastic':
@@ -265,9 +313,29 @@ const ProfilePage = () => {
                 <Box sx={styles.sidebar}>
                     {/* Avatar */}
                     <Box sx={styles.avatarSection}>
-                        <Avatar sx={styles.avatar} src={userProfile.profileImage}>
-                            <PersonOutline sx={styles.avatarIcon} />
-                        </Avatar>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleProfileImageChange}
+                        />
+                        <Box sx={styles.avatarWrapper}>
+                            <Avatar sx={styles.avatar} src={userProfile.profileImage}>
+                                <PersonOutline sx={styles.avatarIcon} />
+                            </Avatar>
+                            <IconButton 
+                                sx={styles.avatarUploadButton}
+                                onClick={handleProfileImageClick}
+                                disabled={uploadingImage}
+                            >
+                                {uploadingImage ? (
+                                    <CircularProgress size={16} sx={{ color: '#ffffff' }} />
+                                ) : (
+                                    <CameraAlt sx={styles.uploadIcon} />
+                                )}
+                            </IconButton>
+                        </Box>
                         <Typography sx={styles.userName}>{userProfile.name}</Typography>
                         <Typography sx={styles.userLocation}>{userProfile.location || 'Location not set'}</Typography>
                         <Typography sx={styles.userBio}>{userProfile.bio || 'No bio yet'}</Typography>
