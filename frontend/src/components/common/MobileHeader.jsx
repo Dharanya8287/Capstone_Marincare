@@ -1,16 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem, Divider, Avatar } from "@mui/material";
 import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import PersonOutline from "@mui/icons-material/PersonOutline";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/useAuth";
+import { apiCall } from "@/utils/api";
 
 export default function MobileHeader() {
     const [anchorEl, setAnchorEl] = useState(null);
+    const [profileImage, setProfileImage] = useState('');
     const router = useRouter();
     const { logout } = useAuth();
+
+    // Fetch user profile to get profile image
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const res = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
+                if (res?.data?.profileImage) {
+                    // Ensure profile image URL is properly formatted
+                    const imageUrl = res.data.profileImage.startsWith('http') 
+                        ? res.data.profileImage 
+                        : `${process.env.NEXT_PUBLIC_API_URL}${res.data.profileImage}`;
+                    setProfileImage(imageUrl);
+                }
+            } catch (error) {
+                console.error('Failed to fetch profile:', error);
+                // Keep default empty string on error
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
     const handleMenuClose = () => setAnchorEl(null);
@@ -81,6 +105,7 @@ export default function MobileHeader() {
                 }}
             >
                 <Avatar
+                    src={profileImage || undefined}
                     sx={{
                         width: 36,
                         height: 36,
@@ -89,7 +114,7 @@ export default function MobileHeader() {
                         fontWeight: 600,
                     }}
                 >
-                    <AccountCircleRoundedIcon sx={{ fontSize: 24 }} />
+                    {!profileImage && <PersonOutline sx={{ fontSize: 24 }} />}
                 </Avatar>
             </IconButton>
 

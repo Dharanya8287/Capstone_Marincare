@@ -111,14 +111,21 @@ const ProfilePage = () => {
 
     async function fetchProfile() {
         try {
-            const res = await apiCall('get', 'http://localhost:5000/api/profile');
+            const res = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
             if (res?.data) {
+                // Ensure profile image URL is properly formatted
+                const profileImage = res.data.profileImage 
+                    ? (res.data.profileImage.startsWith('http') 
+                        ? res.data.profileImage 
+                        : `${process.env.NEXT_PUBLIC_API_URL}${res.data.profileImage}`)
+                    : '';
+                
                 setUserProfile({
                     name: res.data.name || '',
                     email: res.data.email || '',
                     location: res.data.location || '',
                     bio: res.data.bio || '',
-                    profileImage: res.data.profileImage || '',
+                    profileImage: profileImage,
                     totalItemsCollected: res.data.totalItemsCollected || 0,
                     totalChallenges: res.data.totalChallenges || 0,
                     impactScore: res.data.impactScore || 0,
@@ -199,7 +206,7 @@ const ProfilePage = () => {
                 location: editProfile.location,
                 bio: editProfile.bio,
             };
-            await apiCall('patch', 'http://localhost:5000/api/profile', updateData);
+            await apiCall('patch', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`, updateData);
             await fetchProfile(); // Refetch profile to sync latest data
             setIsEditing(false);
             console.log('Profile saved successfully');
@@ -271,13 +278,17 @@ const ProfilePage = () => {
             formData.append('image', file);
 
             // Upload to backend
-            const res = await apiCall('post', 'http://localhost:5000/api/profile/upload-image', formData);
+            const res = await apiCall('post', `${process.env.NEXT_PUBLIC_API_URL}/api/profile/upload-image`, formData);
 
             if (res?.data?.profileImage) {
                 // Update user profile with new image URL
+                // The backend returns the path, prepend the API URL
+                const imageUrl = res.data.profileImage.startsWith('http') 
+                    ? res.data.profileImage 
+                    : `${process.env.NEXT_PUBLIC_API_URL}${res.data.profileImage}`;
                 setUserProfile(prev => ({
                     ...prev,
-                    profileImage: `http://localhost:5000${res.data.profileImage}`
+                    profileImage: imageUrl
                 }));
                 setUploadSuccess('Profile picture updated successfully!');
                 // Clear success message after 3 seconds

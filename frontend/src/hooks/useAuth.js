@@ -8,7 +8,15 @@ import {
     signOut,
     GoogleAuthProvider,
     signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
 } from "firebase/auth";
+
+// Helper: Detect if device is mobile
+function isMobileDevice() {
+    if (typeof window === 'undefined') return false;
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+}
 
 // Helper: Sync user with backend and retry if needed
 // This is now only used for LOGIN and GOOGLE SIGN-IN
@@ -75,11 +83,20 @@ export default function useAuth() {
     const googleLogin = async () => {
         await ensureSessionPersistence();
         const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        if (result.user) {
-            const idToken = await result.user.getIdToken(true);
-            // Sync on Google login (this is fine, it acts as an "get or create")
-            await syncUser(idToken);
+        
+        // Use redirect for mobile devices to avoid popup blocking
+        if (isMobileDevice()) {
+            // For mobile, use redirect flow
+            await signInWithRedirect(auth, provider);
+            // Note: The redirect result will be handled by handleRedirectResult in AuthContext
+        } else {
+            // For desktop, use popup flow
+            const result = await signInWithPopup(auth, provider);
+            if (result.user) {
+                const idToken = await result.user.getIdToken(true);
+                // Sync on Google login (this is fine, it acts as an "get or create")
+                await syncUser(idToken);
+            }
         }
     };
 
@@ -87,5 +104,24 @@ export default function useAuth() {
         await signOut(auth);
     };
 
-    return { login, signup, googleLogin, logout };
+    /**
+     * @desc Handle redirect result after Google sign-in on mobile
+     * This should be called when the app loads to check for redirect results
+     */
+    const handleRedirectResult = async () => {
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                const idToken = await result.user.getIdToken(true);
+                await syncUser(idToken);
+                return result.user;
+            }
+            return null;
+        } catch (error) {
+            console.error("Error handling redirect result:", error);
+            throw error;
+        }
+    };
+
+    return { login, signup, googleLogin, logout, handleRedirectResult };
 }
