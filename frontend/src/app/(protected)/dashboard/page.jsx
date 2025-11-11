@@ -361,13 +361,13 @@ const DashboardPage = () => {
 
         {/* Top Contributors */}
         <Box sx={styles.activityCard}>
-          <Typography sx={styles.chartTitle}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <EmojiEventsOutlined sx={{ color: '#f59e0b', fontSize: 24 }} />
-              Top Contributors
-            </Box>
-          </Typography>
-          <Box sx={{ marginTop: '20px' }}>
+            <Typography component="div" sx={styles.chartTitle}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <EmojiEventsOutlined sx={{ color: '#f59e0b', fontSize: 24 }} />
+                    Top Contributors
+                </Box>
+            </Typography>
+            <Box sx={{ marginTop: '20px' }}>
             {topContributors.length > 0 ? (
               topContributors.slice(0, 5).map((contributor, index) => (
                 <Box 
