@@ -2,11 +2,42 @@ import Challenge from "../models/Challenge.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 
+// Helper function to determine challenge status based on dates
+const getChallengeStatus = (startDate, endDate) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) {
+        return 'upcoming';
+    } else if (now >= start && now <= end) {
+        return 'active';
+    } else {
+        return 'completed';
+    }
+};
+
+// Helper function to update challenge statuses based on current date
+const updateChallengeStatuses = async (challenges) => {
+    return challenges.map(challenge => {
+        const computedStatus = getChallengeStatus(challenge.startDate, challenge.endDate);
+        // Return the challenge with computed status
+        return {
+            ...challenge.toObject(),
+            status: computedStatus
+        };
+    });
+};
+
 // Fetch all challenges
 export const getChallenges = async (req, res) => {
     try {
         const challenges = await Challenge.find({}).sort({ startDate: 1 });
-        res.json(challenges);
+        
+        // Update statuses based on current date
+        const challengesWithStatus = await updateChallengeStatuses(challenges);
+        
+        res.json(challengesWithStatus);
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
     }
@@ -56,7 +87,14 @@ export const getChallengeById = async (req, res) => {
             return res.status(404).json({ message: "Challenge not found" });
         }
 
-        res.json(challenge);
+        // Compute status based on dates
+        const computedStatus = getChallengeStatus(challenge.startDate, challenge.endDate);
+        const challengeWithStatus = {
+            ...challenge.toObject(),
+            status: computedStatus
+        };
+
+        res.json(challengeWithStatus);
     } catch (error) {
         console.error("Error fetching challenge:", error);
         res.status(500).json({ message: "Server Error" });
@@ -80,6 +118,14 @@ export const joinChallenge = async (req, res) => {
         if (!challenge) {
             return res.status(404).json({ message: "Challenge not found" });
         }
+        
+        // Compute the real-time status
+        const computedStatus = getChallengeStatus(challenge.startDate, challenge.endDate);
+        
+        // Prevent joining completed challenges
+        if (computedStatus === 'completed') {
+            return res.status(400).json({ message: "Cannot join a completed challenge" });
+        }
 
         // Check if user already joined
         const user = await User.findById(userId);
@@ -102,7 +148,10 @@ export const joinChallenge = async (req, res) => {
 
         res.json({
             message: "Joined successfully",
-            challenge: updatedChallenge
+            challenge: {
+                ...updatedChallenge.toObject(),
+                status: computedStatus
+            }
         });
     } catch (error) {
         console.error("Error joining challenge:", error);
@@ -175,6 +224,12 @@ export const getJoinedChallenges = async (req, res) => {
         }
 
         let joinedChallenges = user.joinedChallenges;
+        
+        // Update statuses based on current date
+        joinedChallenges = joinedChallenges.map(challenge => ({
+            ...challenge.toObject(),
+            status: getChallengeStatus(challenge.startDate, challenge.endDate)
+        }));
 
         // Filter by status if provided
         if (status && ['active', 'upcoming', 'completed'].includes(status.toLowerCase())) {
