@@ -41,7 +41,7 @@ export default function HomePage() {
   }, [factIndex]);
 
   const handleClick = () => {
-    router.push("/signup");
+    router.push("/landing");
   };
 
   return (
