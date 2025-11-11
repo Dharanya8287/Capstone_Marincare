@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import {
   LineChart,
   Line,
@@ -27,50 +27,69 @@ import {
 } from '@mui/icons-material';
 import { styles } from './dashboard.styles';
 import withAuth from '@/components/auth/withAuth';
+import { apiCall } from '@/utils/api';
 
 const DashboardPage = () => {
-  // Monthly Progress Data
-  const monthlyData = [
-    { month: 'Jun', items: 50 },
-    { month: 'Jul', items: 65 },
-    { month: 'Aug', items: 75 },
-    { month: 'Sep', items: 85 },
-    { month: 'Oct', items: 110 },
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
+
+  // Fetch dashboard data from backend
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await apiCall('get', 'http://localhost:5000/api/dashboard/stats');
+        setDashboardData(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  // Show empty state if no data
+  if (!dashboardData) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <Typography>Unable to load dashboard data</Typography>
+      </Box>
+    );
+  }
+
+  // Extract data from response
+  const {
+    user,
+    monthlyProgress = [],
+    wasteDistribution = [],
+    itemsByType = [],
+    recentActivity = [],
+    communityStats = {},
+  } = dashboardData;
+
+  // Use backend data or fallback to empty arrays
+  const monthlyData = monthlyProgress.length > 0 ? monthlyProgress : [
+    { month: 'Jun', items: 0 },
+    { month: 'Jul', items: 0 },
+    { month: 'Aug', items: 0 },
+    { month: 'Sep', items: 0 },
+    { month: 'Oct', items: 0 },
+    { month: 'Nov', items: 0 },
   ];
 
-  // Waste Distribution Data
-  const wasteData = [
-    { name: 'Plastic', value: 35, color: '#14b8a6' },
-    { name: 'Food', value: 20, color: '#0ea5e9' },
-    { name: 'Aluminum', value: 15, color: '#fbbf24' },
-    { name: 'Fabric', value: 15, color: '#a855f7' },
-    { name: 'Other', value: 15, color: '#06b6d4' },
-  ];
-
-  // Items by Type Data
-  const itemsData = [
-    { type: 'Plastic Bottles', count: 150, color: '#0ea5e9' },
-    { type: 'Food Wrappers', count: 100, color: '#10b981' },
-    { type: 'Aluminum Cans', count: 75, color: '#fbbf24' },
-    { type: 'Fabric Bags', count: 65, color: '#3b82f6' },
-    { type: 'Cigarette Butts', count: 50, color: '#8b5cf6' },
-  ];
-
-  // Recent Activity Data
-  const recentActivity = [
-    { location: 'Toronto Waterfront', date: 'Oct 8, 2025', items: 34 },
-    { location: 'Toronto Waterfront', date: 'Oct 5, 2025', items: 28 },
-    { location: 'High Park Beach', date: 'Oct 28, 2025', items: 45 },
-    { location: 'Toronto Waterfront', date: 'Sep 28, 2025', items: 31 },
-  ];
-
-  // Top Contributors Data
-  const topContributors = [
-    { name: 'Sarah Chen', items: 482, rank: 1, isYou: false },
-    { name: 'You', items: 427, rank: 2, isYou: true },
-    { name: 'Michael Torres', items: 385, rank: 3, isYou: false },
-    { name: 'Emma Wilson', items: 354, rank: 4, isYou: false },
-  ];
+  const wasteData = wasteDistribution;
+  const itemsData = itemsByType;
 
   // Custom Tooltip for Line Chart (Monthly Progress)
   const CustomLineTooltip = ({ active, payload }) => {
@@ -148,11 +167,8 @@ const DashboardPage = () => {
           <Box sx={{ ...styles.statIcon, backgroundColor: '#e0f2fe' }}>
             <RecyclingOutlined sx={{ color: '#0284c7', fontSize: '22px' }} />
           </Box>
-          <Typography sx={styles.statValue}>427</Typography>
+          <Typography sx={styles.statValue}>{user?.totalItemsCollected || 0}</Typography>
           <Typography sx={styles.statLabel}>Total Items</Typography>
-          <Box sx={{ ...styles.badge, backgroundColor: '#dcfce7', color: '#16a34a' }}>
-            -23%
-          </Box>
         </Box>
 
         {/* Cleanups */}
@@ -160,20 +176,17 @@ const DashboardPage = () => {
           <Box sx={{ ...styles.statIcon, backgroundColor: '#fef3c7' }}>
             <CalendarTodayOutlined sx={{ color: '#f59e0b', fontSize: '22px' }} />
           </Box>
-          <Typography sx={styles.statValue}>12</Typography>
+          <Typography sx={styles.statValue}>{user?.totalCleanups || 0}</Typography>
           <Typography sx={styles.statLabel}>Cleanups</Typography>
         </Box>
 
-        {/* Impact Score */}
+        {/* Challenges */}
         <Box sx={styles.statCard}>
           <Box sx={{ ...styles.statIcon, backgroundColor: '#ddd6fe' }}>
             <TrendingUpOutlined sx={{ color: '#7c3aed', fontSize: '22px' }} />
           </Box>
-          <Typography sx={styles.statValue}>8.9k</Typography>
-          <Typography sx={styles.statLabel}>Impact Score</Typography>
-          <Box sx={{ ...styles.badge, backgroundColor: '#dcfce7', color: '#16a34a' }}>
-            +18%
-          </Box>
+          <Typography sx={styles.statValue}>{user?.totalChallenges || 0}</Typography>
+          <Typography sx={styles.statLabel}>Challenges Joined</Typography>
         </Box>
 
         {/* Rank */}
@@ -181,11 +194,11 @@ const DashboardPage = () => {
           <Box sx={{ ...styles.statIcon, backgroundColor: '#fed7aa' }}>
             <EmojiEventsOutlined sx={{ color: '#ea580c', fontSize: '22px' }} />
           </Box>
-          <Typography sx={styles.statValue}>#47</Typography>
+          <Typography sx={styles.statValue}>#{user?.rank || 0}</Typography>
           <Typography sx={styles.statLabel}>Rank</Typography>
-          <Box sx={{ ...styles.badge, backgroundColor: '#dcfce7', color: '#16a34a' }}>
-            +5
-          </Box>
+          <Typography sx={{ fontSize: '11px', color: '#6b7280', mt: 0.5 }}>
+            of {user?.totalUsers || 0} users
+          </Typography>
         </Box>
       </Box>
 
@@ -194,7 +207,7 @@ const DashboardPage = () => {
         {/* Monthly Progress */}
         <Box sx={{ ...styles.chartCard, '& svg': { outline: 'none' }, '& *:focus': { outline: 'none' } }}>
           <Typography sx={styles.chartTitle}>Monthly Progress</Typography>
-          <Typography sx={styles.chartSubtitle}>Last 5 months</Typography>
+          <Typography sx={styles.chartSubtitle}>Last 6 months</Typography>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={monthlyData} margin={{ top: 10, right: 20, left: -10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
@@ -227,80 +240,96 @@ const DashboardPage = () => {
         {/* Waste Distribution */}
         <Box sx={{ ...styles.chartCard, '& svg': { outline: 'none' }, '& *:focus': { outline: 'none' } }}>
           <Typography sx={styles.chartTitle}>Waste Distribution</Typography>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={wasteData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={95}
-                paddingAngle={2}
-                dataKey="value"
-                activeShape={(props) => {
-                  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
-                  const total = wasteData.reduce((sum, entry) => sum + entry.value, 0);
-                  const percentage = ((payload.value / total) * 100).toFixed(1);
-                  
-                  return (
-                    <g>
-                      <text x={cx} y={cy - 10} textAnchor="middle" fill="#1a1a1a" fontSize="16" fontWeight="600">
-                        {payload.name}
-                      </text>
-                      <text x={cx} y={cy + 15} textAnchor="middle" fill={fill} fontSize="20" fontWeight="700">
-                        {percentage}%
-                      </text>
-                      <Sector
-                        cx={cx}
-                        cy={cy}
-                        innerRadius={innerRadius}
-                        outerRadius={outerRadius + 8}
-                        startAngle={startAngle}
-                        endAngle={endAngle}
-                        fill={fill}
-                      />
-                    </g>
-                  );
-                }}
-              >
-                {wasteData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+          {wasteData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={wasteData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={95}
+                  paddingAngle={2}
+                  dataKey="value"
+                  activeShape={(props) => {
+                    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
+                    const total = wasteData.reduce((sum, entry) => sum + entry.value, 0);
+                    const percentage = ((payload.value / total) * 100).toFixed(1);
+                    
+                    return (
+                      <g>
+                        <text x={cx} y={cy - 10} textAnchor="middle" fill="#1a1a1a" fontSize="16" fontWeight="600">
+                          {payload.name}
+                        </text>
+                        <text x={cx} y={cy + 15} textAnchor="middle" fill={fill} fontSize="20" fontWeight="700">
+                          {percentage}%
+                        </text>
+                        <Sector
+                          cx={cx}
+                          cy={cy}
+                          innerRadius={innerRadius}
+                          outerRadius={outerRadius + 8}
+                          startAngle={startAngle}
+                          endAngle={endAngle}
+                          fill={fill}
+                        />
+                      </g>
+                    );
+                  }}
+                >
+                  {wasteData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
+              <Typography sx={{ color: '#6b7280', fontSize: '14px' }}>
+                No data available yet
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
 
       {/* Items Collected by Type */}
       <Box sx={{ ...styles.barChartCard, '& svg': { outline: 'none' }, '& *:focus': { outline: 'none' } }}>
         <Typography sx={styles.chartTitle}>Items Collected by Type</Typography>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={itemsData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
-            <XAxis 
-              dataKey="type" 
-              stroke="#9ca3af" 
-              style={{ fontSize: '11px', fontFamily: 'Inter' }}
-              tickLine={false}
-              axisLine={{ stroke: '#e5e7eb' }}
-              angle={0}
-              textAnchor="middle"
-            />
-            <YAxis 
-              stroke="#9ca3af" 
-              style={{ fontSize: '12px', fontFamily: 'Inter' }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} />
-            <Bar dataKey="count" radius={[8, 8, 0, 0]} maxBarSize={90}>
-              {itemsData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        {itemsData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={itemsData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" vertical={false} />
+              <XAxis 
+                dataKey="type" 
+                stroke="#9ca3af" 
+                style={{ fontSize: '11px', fontFamily: 'Inter' }}
+                tickLine={false}
+                axisLine={{ stroke: '#e5e7eb' }}
+                angle={0}
+                textAnchor="middle"
+              />
+              <YAxis 
+                stroke="#9ca3af" 
+                style={{ fontSize: '12px', fontFamily: 'Inter' }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} />
+              <Bar dataKey="count" radius={[8, 8, 0, 0]} maxBarSize={90}>
+                {itemsData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 280 }}>
+            <Typography sx={{ color: '#6b7280', fontSize: '14px' }}>
+              No cleanup data available yet
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {/* Bottom Row */}
@@ -309,77 +338,54 @@ const DashboardPage = () => {
         <Box sx={styles.activityCard}>
           <Typography sx={styles.chartTitle}>Recent Activity</Typography>
           <Box sx={{ marginTop: '20px' }}>
-            {recentActivity.map((activity, index) => (
-              <Box key={index} sx={styles.activityItem}>
-                <Box sx={styles.activityInfo}>
-                  <Typography sx={styles.activityLocation}>
-                    {activity.location}
-                  </Typography>
-                  <Typography sx={styles.activityDate}>{activity.date}</Typography>
-                </Box>
-                <Box sx={styles.activityBadge}>{activity.items} items</Box>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-
-        {/* Top Contributors */}
-        <Box sx={styles.activityCard}>
-          <Typography sx={styles.chartTitle}>Top Contributors</Typography>
-          <Box sx={{ marginTop: '20px' }}>
-            {topContributors.map((contributor, index) => (
-              <Box key={index} sx={styles.contributorItem}>
-                <Box sx={styles.contributorLeft}>
-                  <Box sx={styles.contributorAvatar}>
-                    <PersonOutline sx={{ fontSize: '22px' }} />
-                  </Box>
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Typography sx={styles.contributorName}>
-                        {contributor.name}
-                      </Typography>
-                      {contributor.isYou && (
-                        <span style={styles.youBadge}>You</span>
-                      )}
-                    </Box>
-                    <Typography sx={styles.contributorCount}>
-                      {contributor.items} items collected
+            {recentActivity.length > 0 ? (
+              recentActivity.map((activity, index) => (
+                <Box key={index} sx={styles.activityItem}>
+                  <Box sx={styles.activityInfo}>
+                    <Typography sx={styles.activityLocation}>
+                      {activity.location}
                     </Typography>
+                    <Typography sx={styles.activityDate}>{activity.date}</Typography>
                   </Box>
+                  <Box sx={styles.activityBadge}>{activity.items} items</Box>
                 </Box>
-                <Typography sx={styles.contributorRank}>
-                  #{contributor.rank}
-                </Typography>
-              </Box>
-            ))}
+              ))
+            ) : (
+              <Typography sx={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', py: 4 }}>
+                No cleanup activity yet. Start by joining a challenge!
+              </Typography>
+            )}
           </Box>
         </Box>
-      </Box>
 
-      {/* Community Impact */}
-      <Box sx={styles.communityCard}>
-        <Typography sx={styles.communityTitle}>
-          <Public sx={{ color: '#0ea5e9', fontSize: '22px' }} />
-          Community Impact
-        </Typography>
-        <Box sx={styles.communityStats}>
-          <Box sx={styles.communityStat}>
-            <Typography sx={styles.communityValue}>12,547</Typography>
-            <Typography sx={styles.communityLabel}>
-              Total items collected by all volunteers
-            </Typography>
-          </Box>
-          <Box sx={styles.communityStat}>
-            <Typography sx={styles.communityValue}>2,891</Typography>
-            <Typography sx={styles.communityLabel}>
-              Active volunteers across Canada
-            </Typography>
-          </Box>
-          <Box sx={styles.communityStat}>
-            <Typography sx={styles.communityValue}>243km</Typography>
-            <Typography sx={styles.communityLabel}>
-              Coastline cleaned this month
-            </Typography>
+        {/* Community Stats - moved from bottom */}
+        <Box sx={styles.activityCard}>
+          <Typography sx={styles.chartTitle}>Community Impact</Typography>
+          <Box sx={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box>
+              <Typography sx={{ fontSize: '28px', fontWeight: 700, color: '#0ea5e9' }}>
+                {communityStats?.totalItemsCollected?.toLocaleString() || 0}
+              </Typography>
+              <Typography sx={{ fontSize: '13px', color: '#6b7280', mt: 0.5 }}>
+                Total items collected
+              </Typography>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: '28px', fontWeight: 700, color: '#10b981' }}>
+                {communityStats?.totalVolunteers?.toLocaleString() || 0}
+              </Typography>
+              <Typography sx={{ fontSize: '13px', color: '#6b7280', mt: 0.5 }}>
+                Active volunteers
+              </Typography>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize: '28px', fontWeight: 700, color: '#f59e0b' }}>
+                {communityStats?.activeChallenges || 0}
+              </Typography>
+              <Typography sx={{ fontSize: '13px', color: '#6b7280', mt: 0.5 }}>
+                Active challenges
+              </Typography>
+            </Box>
           </Box>
         </Box>
       </Box>
