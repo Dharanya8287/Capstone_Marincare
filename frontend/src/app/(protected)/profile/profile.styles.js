@@ -43,16 +43,42 @@ export const styles = {
     textAlign: "center",
     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
     marginBottom: "16px",
+    position: "relative",
+  },
+  avatarWrapper: {
+    position: "relative",
+    width: "100px",
+    height: "100px",
+    margin: "0 auto 16px",
   },
   avatar: {
     width: "100px",
     height: "100px",
-    margin: "0 auto 16px",
+    margin: "0 auto",
     backgroundColor: "#14b8a6",
   },
   avatarIcon: {
     fontSize: "50px",
     color: "#ffffff",
+  },
+  avatarUploadButton: {
+    position: "absolute",
+    bottom: "0",
+    right: "0",
+    backgroundColor: "#0ea5e9",
+    color: "#ffffff",
+    width: "32px",
+    height: "32px",
+    minWidth: "32px",
+    padding: "0",
+    borderRadius: "50%",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+    "&:hover": {
+      backgroundColor: "#0284c7",
+    },
+  },
+  uploadIcon: {
+    fontSize: "16px",
   },
   userName: {
     fontSize: "20px",
