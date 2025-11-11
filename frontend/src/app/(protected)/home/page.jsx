@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import withAuth from '@/components/auth/withAuth';
-import { Box, Typography, Grid, Card } from "@mui/material";
+import { Box, Typography, Grid, Card, CircularProgress } from "@mui/material";
 
 import {
     HeroSection,
@@ -29,6 +29,32 @@ import {
 
 function HomePage() {
     const router = useRouter();
+    const [stats, setStats] = useState({
+        totalItemsCollected: 0,
+        activeContributors: 0,
+        liveChallenges: 0,
+        totalWasteKg: 0,
+        beachesCleaned: 0
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/home/stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setStats(data);
+                }
+            } catch (error) {
+                console.error("Error fetching home stats:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchStats();
+    }, []);
 
     return (
         <>
@@ -56,24 +82,32 @@ function HomePage() {
                     </HeroButtons>
 
                     <StatsBox>
-                        <Box>
-                            <Typography variant="h5" color="#fff" fontWeight={700}>
-                                12,547
-                            </Typography>
-                            <Typography color="#d0eaf0">Total Items Classified</Typography>
-                        </Box>
-                        <Box>
-                            <Typography variant="h5" color="#fff" fontWeight={700}>
-                                2,891
-                            </Typography>
-                            <Typography color="#d0eaf0">Active Contributors</Typography>
-                        </Box>
-                        <Box>
-                            <Typography variant="h5" color="#fff" fontWeight={700}>
-                                47
-                            </Typography>
-                            <Typography color="#d0eaf0">Live Challenges</Typography>
-                        </Box>
+                        {loading ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                                <CircularProgress size={30} sx={{ color: '#fff' }} />
+                            </Box>
+                        ) : (
+                            <>
+                                <Box>
+                                    <Typography variant="h5" color="#fff" fontWeight={700}>
+                                        {stats.totalItemsCollected.toLocaleString()}
+                                    </Typography>
+                                    <Typography color="#d0eaf0">Total Items Classified</Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="h5" color="#fff" fontWeight={700}>
+                                        {stats.activeContributors.toLocaleString()}
+                                    </Typography>
+                                    <Typography color="#d0eaf0">Active Contributors</Typography>
+                                </Box>
+                                <Box>
+                                    <Typography variant="h5" color="#fff" fontWeight={700}>
+                                        {stats.liveChallenges}
+                                    </Typography>
+                                    <Typography color="#d0eaf0">Live Challenges</Typography>
+                                </Box>
+                            </>
+                        )}
                     </StatsBox>
                 </HeroOverlay>
             </HeroSection>
@@ -145,23 +179,29 @@ function HomePage() {
                             Canada's coastlines. Here's what we've accomplished as a team.
                         </p>
                         <Box sx={{ mt: 3 }}>
-                            {[
-                                { label: "Items Collected & Classified", value: "12,547", color: "#0077b6" },
-                                { label: "Total Waste Removed", value: "847 kg", color: "#00a6d6" },
-                                { label: "Active Volunteers This Month", value: "2,891", color: "#67e8c3" },
-                                { label: "Beaches & Shorelines Cleaned", value: "187", color: "#51cf66" },
-                            ].map((stat, i) => (
-                                <Box key={i} sx={{ mb: 2 }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                                        <Typography variant="body2" fontWeight={600} color="#003554">
-                                            {stat.label}
-                                        </Typography>
-                                        <Typography variant="body2" fontWeight={700} color={stat.color}>
-                                            {stat.value}
-                                        </Typography>
-                                    </Box>
+                            {loading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                                    <CircularProgress size={30} />
                                 </Box>
-                            ))}
+                            ) : (
+                                [
+                                    { label: "Items Collected & Classified", value: stats.totalItemsCollected.toLocaleString(), color: "#0077b6" },
+                                    { label: "Total Waste Removed", value: `${stats.totalWasteKg.toLocaleString()} kg`, color: "#00a6d6" },
+                                    { label: "Active Volunteers This Month", value: stats.activeContributors.toLocaleString(), color: "#67e8c3" },
+                                    { label: "Beaches & Shorelines Cleaned", value: stats.beachesCleaned.toLocaleString(), color: "#51cf66" },
+                                ].map((stat, i) => (
+                                    <Box key={i} sx={{ mb: 2 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                            <Typography variant="body2" fontWeight={600} color="#003554">
+                                                {stat.label}
+                                            </Typography>
+                                            <Typography variant="body2" fontWeight={700} color={stat.color}>
+                                                {stat.value}
+                                            </Typography>
+                                        </Box>
+                                    </Box>
+                                ))
+                            )}
                         </Box>
                     </CleanText>
                 </CleanBox>
@@ -184,7 +224,7 @@ function HomePage() {
                             title: "Active Challenges",
                             icon: "🏆",
                             desc: "Join local and national cleanup events",
-                            count: "47 Live",
+                            count: loading ? "..." : `${stats.liveChallenges} Live`,
                             color: "#0077b6"
                         },
                         {

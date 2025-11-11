@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import useAuth from "@/hooks/useAuth";
 import {
     Box,
@@ -53,6 +53,73 @@ export default function LoginPage() {
     });
     const { login, googleLogin } = useAuth();
     const debounceRef = useRef(null);
+
+    // State for analytics data
+    const [analyticsData, setAnalyticsData] = useState([
+        { IconComponent: PeopleIcon, value: "...", label: "Active Volunteers", change: "+0%", color: "#0891b2" },
+        { IconComponent: PublicIcon, value: "...", label: "Items Collected", change: "+0%", color: "#10b981" },
+        { IconComponent: EmojiEventsIcon, value: "...", label: "Active Challenges", change: "+0", color: "#f59e0b" },
+        { IconComponent: TrendingUpIcon, value: "...", label: "Impact Rate", change: "+0%", color: "#8b5cf6" },
+    ]);
+    const [statsLoading, setStatsLoading] = useState(true);
+
+    // Fetch login stats
+    useEffect(() => {
+        const fetchLoginStats = async () => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/home/login-stats`);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Format items collected to "K" format
+                    const formatNumber = (num) => {
+                        if (num >= 1000) {
+                            return `${(num / 1000).toFixed(1)}K`;
+                        }
+                        return num.toString();
+                    };
+
+                    setAnalyticsData([
+                        { 
+                            IconComponent: PeopleIcon, 
+                            value: data.activeVolunteers.toLocaleString(), 
+                            label: "Active Volunteers", 
+                            change: data.changes.volunteersChange, 
+                            color: "#0891b2" 
+                        },
+                        { 
+                            IconComponent: PublicIcon, 
+                            value: formatNumber(data.itemsCollected), 
+                            label: "Items Collected", 
+                            change: data.changes.itemsChange, 
+                            color: "#10b981" 
+                        },
+                        { 
+                            IconComponent: EmojiEventsIcon, 
+                            value: data.activeChallenges.toString(), 
+                            label: "Active Challenges", 
+                            change: data.changes.challengesChange, 
+                            color: "#f59e0b" 
+                        },
+                        { 
+                            IconComponent: TrendingUpIcon, 
+                            value: `${data.impactRate}%`, 
+                            label: "Impact Rate", 
+                            change: data.changes.impactRateChange, 
+                            color: "#8b5cf6" 
+                        },
+                    ]);
+                }
+            } catch (error) {
+                console.error("Error fetching login stats:", error);
+                // Keep default values if fetch fails
+            } finally {
+                setStatsLoading(false);
+            }
+        };
+
+        fetchLoginStats();
+    }, []);
 
     const isValidEmail = (email) =>
         /^[\w.%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
@@ -175,13 +242,6 @@ export default function LoginPage() {
             setGoogleLoading(false);
         }
     };
-
-    const analyticsData = [
-        { IconComponent: PeopleIcon, value: "2,847", label: "Active Volunteers", change: "+12%", color: "#0891b2" },
-        { IconComponent: PublicIcon, value: "12.5K", label: "Items Collected", change: "+24%", color: "#10b981" },
-        { IconComponent: EmojiEventsIcon, value: "47", label: "Active Challenges", change: "+5", color: "#f59e0b" },
-        { IconComponent: TrendingUpIcon, value: "89%", label: "Impact Rate", change: "+7%", color: "#8b5cf6" },
-    ];
 
     return (
         <Box sx={BackgroundStyle}>
