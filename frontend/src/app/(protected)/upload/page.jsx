@@ -21,6 +21,14 @@ import {
     Tab,
     TextField,
     FormControlLabel,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
 } from "@mui/material";
 import {
     CloudUpload,
@@ -30,7 +38,9 @@ import {
     EmojiEvents,
     Warning,
     ListAlt,
-    Check, // Import Check icon for success
+    Check,
+    PhotoCamera,
+    Recycling,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import withAuth from "@/components/auth/withAuth";
@@ -42,12 +52,15 @@ import { trashCategories } from "@/utils/trashCategories";
 function UploadPage() {
     const router = useRouter();
     const fileInputRef = useRef(null);
+    const cameraInputRef = useRef(null);
     const { getActiveChallenges } = useJoinedChallenges();
     const { user, loading: authLoading } = useAuthContext();
 
     const [selectedChallenge, setSelectedChallenge] = useState("");
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [showResultDialog, setShowResultDialog] = useState(false);
+    const [classificationResult, setClassificationResult] = useState(null);
 
     const [tabValue, setTabValue] = useState(0); // 0 for AI, 1 for Manual
     const [uploading, setUploading] = useState(false);
@@ -101,7 +114,49 @@ function UploadPage() {
     };
 
     const handleTakePhoto = () => {
-        fileInputRef.current.click();
+        cameraInputRef.current.click();
+    };
+
+    const handleCameraCapture = (e) => {
+        const files = Array.from(e.target.files);
+        setSelectedFiles(files.slice(0, 1)); // Only allow one file
+        setError("");
+        setSuccess("");
+    };
+
+    const getCategoryIcon = (label) => {
+        const icons = {
+            plastic_bottle: "🍾",
+            metal_can: "🥫",
+            plastic_bag: "🛍️",
+            paper_cardboard: "📦",
+            cigarette_butt: "🚬",
+            glass_bottle: "🍷",
+            unknown: "🗑️",
+        };
+        return icons[label] || "🗑️";
+    };
+
+    const getCategoryDisplayName = (label) => {
+        const names = {
+            plastic_bottle: "Plastic Bottle",
+            metal_can: "Metal Can",
+            plastic_bag: "Plastic Bag",
+            paper_cardboard: "Paper/Cardboard",
+            cigarette_butt: "Cigarette Butt",
+            glass_bottle: "Glass Bottle",
+            unknown: "Unknown Trash",
+        };
+        return names[label] || "Unknown Trash";
+    };
+
+    const handleCloseResultDialog = () => {
+        setShowResultDialog(false);
+        setClassificationResult(null);
+        // Redirect to challenge details after closing
+        if (selectedChallenge) {
+            router.push(`/challenges/${selectedChallenge}`);
+        }
     };
 
     // --- FIX: Updated handleSubmit for SYNCHRONOUS flow ---
@@ -136,15 +191,10 @@ function UploadPage() {
             );
 
             // The backend now returns a 200 with the result
-            const classifiedLabel = res.data.result?.label || 'unknown';
-            const displayMessage = `${res.data.message} - Category counts updated instantly!`;
-            setSuccess(displayMessage);
+            const result = res.data.result || { label: 'unknown', confidence: 0 };
+            setClassificationResult(result);
+            setShowResultDialog(true);
             setSelectedFiles([]);
-
-            // Show success for 2 seconds, then redirect to challenge details
-            setTimeout(() => {
-                router.push(`/challenges/${selectedChallenge}`);
-            }, 2000);
 
         } catch (err) {
             console.error("AI Upload error:", err);
@@ -423,14 +473,41 @@ function UploadPage() {
                                                 Upload one photo of a single item or small pile.
                                             </Typography>
                                             {/* --- END FIX --- */}
-                                            <Button
-                                                variant="outlined"
-                                                startIcon={<CloudUpload />}
-                                                onClick={() => fileInputRef.current?.click()}
-                                                sx={{ borderColor: "#0ea5e9", borderWidth: 2, color: "#0ea5e9", px: 3, py: 1.5, borderRadius: "12px", textTransform: "none", fontWeight: 700, fontSize: "1rem", "&:hover": { borderWidth: 2, borderColor: "#0284c7", backgroundColor: "#f0f9ff" } }}
-                                            >
-                                                Choose File
-                                            </Button>
+                                            
+                                            {/* Action Buttons Row */}
+                                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<CloudUpload />}
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    sx={{ borderColor: "#0ea5e9", borderWidth: 2, color: "#0ea5e9", px: 3, py: 1.5, borderRadius: "12px", textTransform: "none", fontWeight: 700, fontSize: "1rem", "&:hover": { borderWidth: 2, borderColor: "#0284c7", backgroundColor: "#f0f9ff" } }}
+                                                >
+                                                    Choose File
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    startIcon={<PhotoCamera />}
+                                                    onClick={handleTakePhoto}
+                                                    sx={{ 
+                                                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                                                        color: "white",
+                                                        px: 3, 
+                                                        py: 1.5, 
+                                                        borderRadius: "12px", 
+                                                        textTransform: "none", 
+                                                        fontWeight: 700, 
+                                                        fontSize: "1rem",
+                                                        boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                                                        "&:hover": { 
+                                                            background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                                                            boxShadow: "0 6px 16px rgba(16, 185, 129, 0.4)",
+                                                        } 
+                                                    }}
+                                                >
+                                                    Take Photo
+                                                </Button>
+                                            </Box>
+                                            
                                             <Typography variant="caption" sx={{ color: "#94a3b8", mt: 1 }}>
                                                 Supports: JPG, PNG • Max size: 10MB
                                             </Typography>
@@ -443,6 +520,14 @@ function UploadPage() {
                                             style={{ display: "none" }}
                                             onChange={handleFileSelect}
                                         />
+                                        <input
+                                            ref={cameraInputRef}
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
+                                            style={{ display: "none" }}
+                                            onChange={handleCameraCapture}
+                                        />
                                     </Paper>
 
                                     {selectedFiles.length > 0 && (
@@ -450,6 +535,26 @@ function UploadPage() {
                                             <Typography variant="h6" sx={{ fontWeight: 700, color: "#0d1b2a", mb: 2 }}>
                                                 Selected Photo
                                             </Typography>
+                                            
+                                            {/* Display filename */}
+                                            <Paper sx={{ p: 2, mb: 2, borderRadius: "12px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                                                <List dense>
+                                                    {selectedFiles.map((file, index) => (
+                                                        <ListItem key={index} sx={{ px: 0 }}>
+                                                            <ListItemIcon>
+                                                                <CheckCircle sx={{ color: "#10b981" }} />
+                                                            </ListItemIcon>
+                                                            <ListItemText 
+                                                                primary={file.name}
+                                                                secondary={`${(file.size / 1024).toFixed(2)} KB`}
+                                                                primaryTypographyProps={{ fontWeight: 600, fontSize: "0.95rem" }}
+                                                                secondaryTypographyProps={{ fontSize: "0.85rem" }}
+                                                            />
+                                                        </ListItem>
+                                                    ))}
+                                                </List>
+                                            </Paper>
+                                            
                                             <Grid container spacing={2}>
                                                 {selectedFiles.map((file, index) => (
                                                     <Grid item xs={6} sm={4} key={index}>
@@ -544,6 +649,91 @@ function UploadPage() {
                     </Grid>
                 </Grid>
             </Container>
+
+            {/* Classification Result Dialog */}
+            <Dialog 
+                open={showResultDialog} 
+                onClose={handleCloseResultDialog}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: "20px",
+                        p: 2,
+                    }
+                }}
+            >
+                <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        <Box sx={{ 
+                            width: 80, 
+                            height: 80, 
+                            borderRadius: "50%", 
+                            background: "linear-gradient(135deg, #10b981 0%, #059669 100%)", 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center",
+                            boxShadow: "0 8px 24px rgba(16, 185, 129, 0.3)"
+                        }}>
+                            <CheckCircle sx={{ fontSize: 48, color: "white" }} />
+                        </Box>
+                        <Typography variant="h5" sx={{ fontWeight: 800, color: "#0d1b2a" }}>
+                            Successfully Classified!
+                        </Typography>
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
+                    {classificationResult && (
+                        <Box sx={{ textAlign: "center", py: 2 }}>
+                            <Typography variant="h2" sx={{ fontSize: "4rem", mb: 2 }}>
+                                {getCategoryIcon(classificationResult.label)}
+                            </Typography>
+                            <Typography variant="h5" sx={{ fontWeight: 700, color: "#0ea5e9", mb: 1 }}>
+                                {getCategoryDisplayName(classificationResult.label)}
+                            </Typography>
+                            <Chip 
+                                icon={<Recycling />}
+                                label={`${(classificationResult.confidence * 100).toFixed(1)}% confident`}
+                                sx={{ 
+                                    backgroundColor: "#e0f2fe", 
+                                    color: "#0369a1", 
+                                    fontWeight: 600,
+                                    fontSize: "0.9rem",
+                                    py: 2.5,
+                                    mt: 2
+                                }}
+                            />
+                            <Alert severity="success" sx={{ mt: 3, borderRadius: "12px" }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                    Your cleanup has been logged and category counts updated!
+                                </Typography>
+                            </Alert>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+                    <Button 
+                        onClick={handleCloseResultDialog}
+                        variant="contained"
+                        size="large"
+                        sx={{ 
+                            background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
+                            color: "white",
+                            px: 4,
+                            py: 1.5,
+                            borderRadius: "12px",
+                            textTransform: "none",
+                            fontWeight: 700,
+                            fontSize: "1rem",
+                            "&:hover": {
+                                background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
+                            }
+                        }}
+                    >
+                        View Challenge Details
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
