@@ -1,5 +1,3 @@
-// Style objects for the UploadPage component
-
 export const PageContainerStyle = {
     minHeight: "100vh",
     backgroundColor: "#f8fafb",

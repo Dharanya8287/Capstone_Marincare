@@ -9,7 +9,7 @@ import achievementsRoutes from "./routes/achievementsRoutes.js";
 
 const PORT = process.env.PORT || 5000;
 
-// Register extra routes
+// Register API routes
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cleanups", cleanupRoutes);
