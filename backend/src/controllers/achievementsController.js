@@ -112,6 +112,7 @@ export const getUserAchievements = async (req, res) => {
                         currentProgress = userStats.totalCleanups >= 1 ? 1 : 0;
                         break;
                     default:
+                        console.warn(`Achievement type '${achievement.achievementType}' not implemented in progress logic`);
                         currentProgress = achievement.progress;
                 }
 

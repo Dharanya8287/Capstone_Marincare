@@ -19,7 +19,6 @@ const achievementSchema = new mongoose.Schema(
                 "impact_1000",
                 "impact_5000",
                 "regional_hero",
-                "waste_specialist",
             ],
         },
         title: { type: String, required: true },

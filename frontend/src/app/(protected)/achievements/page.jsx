@@ -66,7 +66,7 @@ function AchievementsPage() {
                     ...a,
                     emoji: a.icon, 
                     status: a.isUnlocked ? "Unlocked" : "In Progress",
-                    progress: a.isUnlocked ? 100 : Math.min(Math.round((a.progress / a.goal) * 100), 99),
+                    progress: a.isUnlocked ? 100 : (a.goal > 0 ? Math.min(Math.round((a.progress / a.goal) * 100), 99) : 0),
                 })));
                 
                 setLeaderboard(leaderboardRes.data.leaderboard);
