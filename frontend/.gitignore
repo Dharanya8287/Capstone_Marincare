@@ -1,1 +1,15 @@
 .env.local
+.next/
+node_modules/
+*.log
+.DS_Store
+coverage/
+.vercel
+.turbo
+out/
+
+# PWA generated files
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
