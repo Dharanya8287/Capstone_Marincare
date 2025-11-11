@@ -58,6 +58,9 @@ export const getDashboardStats = async (req, res) => {
         // 7. Challenge participation summary
         const challengeParticipation = await getChallengeParticipation(userId);
 
+        // 8. Top Contributors
+        const topContributors = await getTopContributors(10);
+
         // Return comprehensive dashboard data
         res.json({
             user: {
@@ -75,6 +78,7 @@ export const getDashboardStats = async (req, res) => {
             recentActivity,
             communityStats,
             challengeParticipation,
+            topContributors,
         });
     } catch (error) {
         console.error("Error fetching dashboard stats:", error);
@@ -286,8 +290,26 @@ async function getCommunityStats() {
 }
 
 /**
- * Get user's challenge participation summary
+ * Get top contributors (leaderboard)
  */
+async function getTopContributors(limit = 10) {
+    const topUsers = await User.find()
+        .sort({ totalItemsCollected: -1 })
+        .limit(limit)
+        .select('name email totalItemsCollected totalCleanups')
+        .lean();
+
+    // Format for frontend with rank
+    const formatted = topUsers.map((user, index) => ({
+        rank: index + 1,
+        name: user.name,
+        email: user.email,
+        totalItems: user.totalItemsCollected,
+        totalCleanups: user.totalCleanups,
+    }));
+
+    return formatted;
+}
 async function getChallengeParticipation(userId) {
     const user = await User.findById(userId).populate("joinedChallenges", "title status");
 

@@ -76,6 +76,7 @@ const DashboardPage = () => {
     itemsByType = [],
     recentActivity = [],
     communityStats = {},
+    topContributors = [],
   } = dashboardData;
 
   // Use backend data or fallback to empty arrays
@@ -353,6 +354,79 @@ const DashboardPage = () => {
             ) : (
               <Typography sx={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', py: 4 }}>
                 No cleanup activity yet. Start by joining a challenge!
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        {/* Top Contributors */}
+        <Box sx={styles.activityCard}>
+          <Typography sx={styles.chartTitle}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EmojiEventsOutlined sx={{ color: '#f59e0b', fontSize: 24 }} />
+              Top Contributors
+            </Box>
+          </Typography>
+          <Box sx={{ marginTop: '20px' }}>
+            {topContributors.length > 0 ? (
+              topContributors.slice(0, 5).map((contributor, index) => (
+                <Box 
+                  key={index} 
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 16px',
+                    marginBottom: '10px',
+                    backgroundColor: contributor.rank <= 3 ? '#fef3c7' : '#f8fafc',
+                    borderRadius: '12px',
+                    border: contributor.rank <= 3 ? '2px solid #f59e0b' : '1px solid #e5e7eb',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      transform: 'translateX(4px)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box 
+                      sx={{ 
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        backgroundColor: contributor.rank <= 3 ? '#f59e0b' : '#0ea5e9',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700,
+                        fontSize: '14px',
+                      }}
+                    >
+                      {contributor.rank}
+                    </Box>
+                    <Box>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 600, color: '#1a1a1a' }}>
+                        {contributor.name}
+                      </Typography>
+                      <Typography sx={{ fontSize: '12px', color: '#6b7280' }}>
+                        {contributor.totalCleanups} cleanups
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 700, color: '#0ea5e9' }}>
+                      {contributor.totalItems.toLocaleString()}
+                    </Typography>
+                    <Typography sx={{ fontSize: '11px', color: '#6b7280' }}>
+                      items
+                    </Typography>
+                  </Box>
+                </Box>
+              ))
+            ) : (
+              <Typography sx={{ color: '#6b7280', fontSize: '14px', textAlign: 'center', py: 4 }}>
+                No contributors yet. Be the first!
               </Typography>
             )}
           </Box>
