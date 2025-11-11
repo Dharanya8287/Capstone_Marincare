@@ -76,35 +76,53 @@ function ChallengeDetailsPage({ params }) {
 
     const trashCategories = getTrashCategories();
 
-    // Fetch challenge from backend
-    const fetchChallenge = async () => {
+    // Fetch challenge from backend (initial load only)
+    const fetchChallenge = async (showLoading = true) => {
         try {
-            if (!loading) {
-                // Don't show loading spinner for refresh
-                const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
-                setChallenge(response.data);
-            } else {
-                setLoading(true);
-                const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
-                setChallenge(response.data);
-                setLoading(false);
-            }
+            if (showLoading) setLoading(true);
+            
+            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            setChallenge(response.data);
+            
+            if (showLoading) setLoading(false);
         } catch (error) {
             console.error('Error fetching challenge:', error);
             setSnackbar({ open: true, message: 'Error loading challenge', severity: 'error' });
-            if (loading) setLoading(false);
+            if (showLoading) setLoading(false);
+        }
+    };
+
+    // Silently refresh challenge data (no loading state)
+    const refreshChallengeData = async () => {
+        try {
+            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            // Only update if data changed to prevent unnecessary re-renders
+            setChallenge(prev => {
+                const newData = response.data;
+                // Compare critical fields to see if update is needed
+                if (!prev || 
+                    prev.totalTrashCollected !== newData.totalTrashCollected ||
+                    prev.totalVolunteers !== newData.totalVolunteers ||
+                    JSON.stringify(prev.wasteBreakdown) !== JSON.stringify(newData.wasteBreakdown)) {
+                    return newData;
+                }
+                return prev;
+            });
+        } catch (error) {
+            console.error('Error refreshing challenge:', error);
+            // Silently fail on refresh, don't show error to user
         }
     };
 
     // Initial fetch
     useEffect(() => {
-        fetchChallenge();
+        fetchChallenge(true);
     }, [id]);
 
-    // Auto-refresh challenge data every 10 seconds to get latest stats
+    // Auto-refresh challenge data every 10 seconds to get latest stats (silently)
     useEffect(() => {
         const intervalId = setInterval(() => {
-            fetchChallenge();
+            refreshChallengeData();
         }, 10000); // Refresh every 10 seconds
 
         return () => clearInterval(intervalId);
@@ -119,9 +137,8 @@ function ChallengeDetailsPage({ params }) {
             setActionLoading(true);
             await joinChallenge(challenge._id);
             
-            // Refresh challenge data to get updated volunteer count
-            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
-            setChallenge(response.data);
+            // Silently refresh challenge data to get updated volunteer count
+            await refreshChallengeData();
             
             setSnackbar({ open: true, message: 'Successfully joined the challenge!', severity: 'success' });
         } catch (error) {
@@ -143,9 +160,8 @@ function ChallengeDetailsPage({ params }) {
             setActionLoading(true);
             await leaveChallenge(challenge._id);
             
-            // Refresh challenge data to get updated volunteer count
-            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
-            setChallenge(response.data);
+            // Silently refresh challenge data to get updated volunteer count
+            await refreshChallengeData();
             
             setSnackbar({ open: true, message: 'Successfully left the challenge', severity: 'info' });
         } catch (error) {
