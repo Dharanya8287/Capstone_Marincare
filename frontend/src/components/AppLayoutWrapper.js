@@ -35,7 +35,7 @@ export default function AppLayoutWrapper({ children }) {
     const { isAuthenticated } = useAuthContext();
 
     // Define which pages are considered "public" or "auth" pages
-    const isPublicPage = pathname === "/" || pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password";
+    const isPublicPage = pathname === "/" || pathname === "/landing" || pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password";
 
     // Show the layout ONLY if the user is authenticated .
     const showLayout = isAuthenticated && !isPublicPage;

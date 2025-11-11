@@ -1,7 +1,14 @@
 "use client";
 import { Box, Typography, Button } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+
+const FACTS = [
+  "Every year, 8 million tons of plastic enter our oceans.",
+  "Ocean cleanup volunteers remove up to 500kg of waste daily.",
+  "Coastal cleanups improve marine biodiversity by 40%.",
+  "Join 2,800+ volunteers making a real environmental impact.",
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -9,19 +16,12 @@ export default function HomePage() {
   const [displayedText, setDisplayedText] = useState("");
   const [factIndex, setFactIndex] = useState(0);
 
-  const facts = [
-    "Every year, 8 million tons of plastic enter our oceans.",
-    "Ocean cleanup volunteers remove up to 500kg of waste daily.",
-    "Coastal cleanups improve marine biodiversity by 40%.",
-    "Join 2,800+ volunteers making a real environmental impact.",
-  ];
-
   useEffect(() => {
     setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    const currentFact = facts[factIndex];
+    const currentFact = FACTS[factIndex];
     let charIndex = 0;
 
     const typeInterval = setInterval(() => {
@@ -32,7 +32,7 @@ export default function HomePage() {
         clearInterval(typeInterval);
         setTimeout(() => {
           setDisplayedText("");
-          setFactIndex((prev) => (prev + 1) % facts.length);
+          setFactIndex((prev) => (prev + 1) % FACTS.length);
         }, 3000);
       }
     }, 50);
@@ -41,7 +41,7 @@ export default function HomePage() {
   }, [factIndex]);
 
   const handleClick = () => {
-    router.push("/signup");
+    router.push("/landing");
   };
 
   return (
@@ -253,7 +253,7 @@ export default function HomePage() {
             }}
           >
             {displayedText}
-            {displayedText.length < facts[factIndex].length && (
+            {displayedText.length < FACTS[factIndex].length && (
               <span
                 style={{
                   marginLeft: "2px",

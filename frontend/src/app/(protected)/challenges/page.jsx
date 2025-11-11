@@ -27,7 +27,7 @@ import {
 } from "./challenge.styles";
 
 import StatsCard from "@/components/common/StatCard";
-import ChallengeCard from "@/components/cards/challengeCard";
+import ChallengeCard from "@/components/cards/ChallengeCard";
 import CTASection from "@/components/sections/CTASection";
 import withAuth from "@/components/auth/withAuth";
 import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
