@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { apiCall } from '@/utils/api';
-import { Box, Typography, Avatar, Button, TextField, Autocomplete, Switch, IconButton, CircularProgress } from '@mui/material';
+import { Box, Typography, Avatar, Button, TextField, Autocomplete, Switch, IconButton, CircularProgress, Tooltip, Alert } from '@mui/material';
 import {
     EmailOutlined,
     LocationOnOutlined,
@@ -30,6 +30,8 @@ const ProfilePage = () => {
     const [isEditing, setIsEditing] = useState(false);
     const fileInputRef = useRef(null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const [uploadSuccess, setUploadSuccess] = useState('');
 
     // User profile state
     const [userProfile, setUserProfile] = useState({
@@ -194,10 +196,8 @@ const ProfilePage = () => {
         try {
             const updateData = {
                 name: editProfile.name,
-                email: editProfile.email,
                 location: editProfile.location,
                 bio: editProfile.bio,
-                profileImage: editProfile.profileImage,
             };
             await apiCall('patch', 'http://localhost:5000/api/profile', updateData);
             await fetchProfile(); // Refetch profile to sync latest data
@@ -247,15 +247,19 @@ const ProfilePage = () => {
         const file = event.target.files?.[0];
         if (!file) return;
 
+        // Clear previous messages
+        setUploadError('');
+        setUploadSuccess('');
+
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            console.error('Please select an image file');
+            setUploadError('Please select an image file');
             return;
         }
 
         // Validate file size (5MB)
         if (file.size > 5 * 1024 * 1024) {
-            console.error('File size must be less than 5MB');
+            setUploadError('File size must be less than 5MB');
             return;
         }
 
@@ -275,10 +279,13 @@ const ProfilePage = () => {
                     ...prev,
                     profileImage: `http://localhost:5000${res.data.profileImage}`
                 }));
-                console.log('Profile image updated successfully');
+                setUploadSuccess('Profile picture updated successfully!');
+                // Clear success message after 3 seconds
+                setTimeout(() => setUploadSuccess(''), 3000);
             }
         } catch (error) {
             console.error('Failed to upload profile image:', error);
+            setUploadError('Failed to upload profile picture. Please try again.');
         } finally {
             setUploadingImage(false);
         }
@@ -324,21 +331,35 @@ const ProfilePage = () => {
                             <Avatar sx={styles.avatar} src={userProfile.profileImage}>
                                 <PersonOutline sx={styles.avatarIcon} />
                             </Avatar>
-                            <IconButton 
-                                sx={styles.avatarUploadButton}
-                                onClick={handleProfileImageClick}
-                                disabled={uploadingImage}
-                            >
-                                {uploadingImage ? (
-                                    <CircularProgress size={16} sx={{ color: '#ffffff' }} />
-                                ) : (
-                                    <CameraAlt sx={styles.uploadIcon} />
-                                )}
-                            </IconButton>
+                            <Tooltip title="Upload profile picture" placement="right">
+                                <IconButton 
+                                    sx={styles.avatarUploadButton}
+                                    onClick={handleProfileImageClick}
+                                    disabled={uploadingImage}
+                                >
+                                    {uploadingImage ? (
+                                        <CircularProgress size={16} sx={{ color: '#ffffff' }} />
+                                    ) : (
+                                        <CameraAlt sx={styles.uploadIcon} />
+                                    )}
+                                </IconButton>
+                            </Tooltip>
                         </Box>
                         <Typography sx={styles.userName}>{userProfile.name}</Typography>
                         <Typography sx={styles.userLocation}>{userProfile.location || 'Location not set'}</Typography>
                         <Typography sx={styles.userBio}>{userProfile.bio || 'No bio yet'}</Typography>
+                        
+                        {/* Upload status messages */}
+                        {uploadError && (
+                            <Alert severity="error" sx={{ mt: 2, fontSize: '13px' }} onClose={() => setUploadError('')}>
+                                {uploadError}
+                            </Alert>
+                        )}
+                        {uploadSuccess && (
+                            <Alert severity="success" sx={{ mt: 2, fontSize: '13px' }} onClose={() => setUploadSuccess('')}>
+                                {uploadSuccess}
+                            </Alert>
+                        )}
                     </Box>
 
                     {/* User Info */}
@@ -434,16 +455,7 @@ const ProfilePage = () => {
 
                                     <Box sx={styles.formGroup}>
                                         <Typography sx={styles.label}>Email Address</Typography>
-                                        {isEditing ? (
-                                            <TextField
-                                                fullWidth
-                                                value={editProfile.email}
-                                                onChange={(e) => handleProfileInputChange('email', e.target.value)}
-                                                sx={styles.input}
-                                            />
-                                        ) : (
-                                            <Typography sx={styles.value}>{userProfile.email}</Typography>
-                                        )}
+                                        <Typography sx={styles.value}>{userProfile.email}</Typography>
                                     </Box>
 
                                     <Box sx={styles.formGroup}>
