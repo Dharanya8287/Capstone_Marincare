@@ -1,31 +1,31 @@
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
-import { initializeAI } from "./services/aiService.js"; // <-- IMPORT
+import { initializeAI } from "./services/aiService.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
-import cleanupRoutes from "./routes/cleanupRoutes.js"; // <-- IMPORT
+import cleanupRoutes from "./routes/cleanupRoutes.js";
 
 const PORT = process.env.PORT || 5000;
 
 // Register extra routes
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/cleanups", cleanupRoutes); // <-- ADDED
+app.use("/api/cleanups", cleanupRoutes);
 app.get("/", (req, res) => {
     res.status(200).send("Server is running 🚀");
 });
 
-// --- FIX ---
-// We wrap the server start in an async function to load the AI model first
+
+// Wrap the server start in an async function to load the AI model first
 async function startServer() {
     try {
-        // 1. Connect to MongoDB
+        // Connect to MongoDB
         await connectDB();
 
-        // 2. Load AI Model into memory
+        // Load AI Model into memory
         await initializeAI();
 
-        // 3. Start the server
+        // Start the server
         app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT} and AI is ready!`);
         });
@@ -37,5 +37,5 @@ async function startServer() {
 }
 
 startServer();
-// --- END FIX ---
+
 

@@ -3,7 +3,7 @@ import { writeFileSync, unlinkSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-// Classifier is now loaded once and held in memory.
+// Classifier is loaded once and held in memory.
 let classifier = null;
 
 const CANDIDATE_LABELS = [
@@ -34,15 +34,12 @@ export async function initializeAI() {
             // We set a progress bar to see it loading
             classifier = await pipeline("zero-shot-image-classification", "Xenova/clip-vit-base-patch32", {
                 progress_callback: (progress) => {
-                    // --- THIS IS THE FIX ---
-                    // We must check if 'progress.progress' exists before calling .toFixed()
                     if (progress.progress) {
                         console.log(`AI Model Loading: ${progress.file} (${(progress.progress).toFixed(1)}%)`);
                     } else {
-                        // This will log other statuses like "downloading", "loading", etc.
                         console.log(`AI Model Status: ${progress.status} - ${progress.file}`);
                     }
-                    // --- END FIX ---
+
                 }
             });
             console.log("✅ AI Model loaded successfully.");
@@ -54,13 +51,13 @@ export async function initializeAI() {
     }
 }
 
-// classifyImage is now much simpler. It assumes the model is already loaded.
+// classifyImage assumes the model is already loaded.
 export async function classifyImage(buffer) {
     if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
         throw new Error("Invalid image buffer");
     }
 
-    // No more await loadModel(). We just check if it's ready.
+    // Check if it's ready.
     if (!classifier) {
         console.error("AI Model not initialized. Please restart the server.");
         throw new Error("AI classifier is not ready.");
@@ -73,7 +70,7 @@ export async function classifyImage(buffer) {
         // Write buffer to temporary file
         writeFileSync(tempFilePath, buffer);
 
-        // Pass the file path to the classifier. This is now fast (1-2 seconds).
+        // Pass the file path to the classifier.
         const results = await classifier(tempFilePath, CANDIDATE_LABELS);
 
         // Sort by confidence
