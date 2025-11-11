@@ -4,6 +4,7 @@ import { initializeAI } from "./services/aiService.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import cleanupRoutes from "./routes/cleanupRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cleanups", cleanupRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.get("/", (req, res) => {
     res.status(200).send("Server is running 🚀");
 });
