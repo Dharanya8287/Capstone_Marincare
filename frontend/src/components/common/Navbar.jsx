@@ -1,14 +1,38 @@
 "use client";
 
-import { AppBar, Toolbar, Typography, Box, Button, IconButton, Stack } from "@mui/material";
+import { useState, useEffect } from "react";
+import { AppBar, Toolbar, Typography, Box, Button, IconButton, Stack, Avatar } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import { navItems } from "./navConfig";
-import AccountCircleRoundedIcon from "@mui/icons-material/AccountCircleRounded";
+import PersonOutline from "@mui/icons-material/PersonOutline";
+import { apiCall } from "@/utils/api";
 
 export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
+    const [profileImage, setProfileImage] = useState('');
     const isActive = (path) => (path === "/" ? pathname === "/" : pathname?.startsWith(path));
+
+    // Fetch user profile to get profile image
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const res = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
+                if (res?.data?.profileImage) {
+                    // Ensure profile image URL is properly formatted
+                    const imageUrl = res.data.profileImage.startsWith('http') 
+                        ? res.data.profileImage 
+                        : `${process.env.NEXT_PUBLIC_API_URL}${res.data.profileImage}`;
+                    setProfileImage(imageUrl);
+                }
+            } catch (error) {
+                console.error('Failed to fetch profile:', error);
+                // Keep default empty string on error
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     return (
         <AppBar
@@ -131,21 +155,34 @@ export default function Navbar() {
                         onClick={() => router.push("/profile")}
                         sx={{
                             bgcolor: "#f1f5f9",
-                            color: "#0891b2",
                             border: "1px solid #e2e8f0",
                             width: 44,
                             height: 44,
+                            p: 0,
                             transition: "all 0.2s ease",
                             "&:hover": {
                                 bgcolor: "#0891b2",
-                                color: "#ffffff",
                                 borderColor: "#0891b2",
                                 transform: "scale(1.05)",
                                 boxShadow: "0 4px 12px rgba(8, 145, 178, 0.3)",
+                                "& .MuiAvatar-root": {
+                                    bgcolor: "#0e7490",
+                                }
                             },
                         }}
                     >
-                        <AccountCircleRoundedIcon sx={{ fontSize: 24 }} />
+                        <Avatar
+                            src={profileImage || undefined}
+                            sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: "#0891b2",
+                                fontSize: 16,
+                                fontWeight: 600,
+                            }}
+                        >
+                            {!profileImage && <PersonOutline sx={{ fontSize: 22, color: "#ffffff" }} />}
+                        </Avatar>
                     </IconButton>
                 </Stack>
             </Toolbar>

@@ -22,7 +22,7 @@ export const JoinedChallengesProvider = ({ children }) => {
 
         try {
             setLoading(true);
-            const response = await apiCall('get', 'http://localhost:5000/api/challenges/joined');
+            const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/joined`);
             setJoinedChallenges(response.data || []);
         } catch (error) {
             console.error('Error fetching joined challenges:', error);
@@ -39,7 +39,7 @@ export const JoinedChallengesProvider = ({ children }) => {
 
     const joinChallenge = async (challengeId) => {
         try {
-            const response = await apiCall('post', `http://localhost:5000/api/challenges/${challengeId}/join`);
+            const response = await apiCall('post', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/join`);
             
             // Refresh the list after joining
             await fetchJoinedChallenges();
@@ -53,7 +53,7 @@ export const JoinedChallengesProvider = ({ children }) => {
 
     const leaveChallenge = async (challengeId) => {
         try {
-            const response = await apiCall('post', `http://localhost:5000/api/challenges/${challengeId}/leave`);
+            const response = await apiCall('post', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/leave`);
             
             // Refresh the list after leaving
             await fetchJoinedChallenges();

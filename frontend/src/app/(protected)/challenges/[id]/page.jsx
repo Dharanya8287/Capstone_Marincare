@@ -81,7 +81,7 @@ function ChallengeDetailsPage({ params }) {
         try {
             if (showLoading) setLoading(true);
             
-            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${id}`);
             setChallenge(response.data);
             
             if (showLoading) setLoading(false);
@@ -95,7 +95,7 @@ function ChallengeDetailsPage({ params }) {
     // Silently refresh challenge data (no loading state)
     const refreshChallengeData = async () => {
         try {
-            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${id}`);
             // Only update if data changed to prevent unnecessary re-renders
             setChallenge(prev => {
                 const newData = response.data;
