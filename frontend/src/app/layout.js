@@ -31,6 +31,11 @@ export const viewport = {
 export default function RootLayout({ children }) {
     return (
         <html lang="en" suppressHydrationWarning={true}>
+        <head>
+            <link rel="preload" as="image" href="/images/login-mobile.webp" media="(max-width: 900px)" />
+            <link rel="preload" as="image" href="/images/login-optimized.webp" media="(min-width: 901px)" />
+            <link rel="preload" as="image" href="/images/logowhite-optimized.webp" />
+        </head>
         <body style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
         <AuthProvider>
             <JoinedChallengesProvider>

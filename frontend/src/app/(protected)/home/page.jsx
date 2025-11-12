@@ -131,7 +131,7 @@ function HomePage() {
                             desc: "Browse active cleanup challenges in your area and join the ones that interest you.",
                         },
                         {
-                            img: "/images/cleanup.jpg",
+                            img: "/images/cleanup-optimized.webp",
                             title: "2. Collect Waste",
                             desc: "Participate in beach or shoreline cleanups and collect marine debris.",
                         },
