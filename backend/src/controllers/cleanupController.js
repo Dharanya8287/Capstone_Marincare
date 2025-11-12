@@ -6,9 +6,11 @@ import Cleanup from "../models/Cleanup.js";
 import User from "../models/User.js";
 import Challenge from "../models/Challenge.js";
 
-// --- FIX ---
-// This controller is now SYNCHRONOUS. It does all work and returns
-// the AI result directly to the user.
+/**
+ * @route   POST /api/cleanups/upload
+ * @desc    Upload cleanup photo with AI classification
+ * @access  Private
+ */
 export const uploadCleanupPhoto = async (req, res) => {
     if (!req.file || !req.file.buffer) {
         return res.status(400).json({ message: "No image file provided." });
@@ -25,8 +27,6 @@ export const uploadCleanupPhoto = async (req, res) => {
     const userId = req.mongoUser._id; // From userMiddleware
 
     try {
-        // --- This all happens in one request now ---
-
         // 1. Save image to GridFS
         const fileId = await uploadImageToGridFS(buffer, originalname || "cleanup-upload.jpg");
 
@@ -76,14 +76,17 @@ export const uploadCleanupPhoto = async (req, res) => {
         res.status(500).json({ message: "An error occurred during cleanup upload." });
     }
 };
-// --- END FIX ---
 
-
+/**
+ * @route   POST /api/cleanups/manual
+ * @desc    Log manual cleanup entry
+ * @access  Private
+ */
 export const logManualCleanup = async (req, res) => {
     const { challengeId, label, itemCount } = req.body;
     const userId = req.mongoUser._id;
 
-    // --- Simple Validation ---
+    // Validation
     if (!challengeId || !label || !itemCount) {
         return res.status(400).json({ message: "Missing challenge, label, or item count." });
     }
@@ -129,10 +132,7 @@ export const logManualCleanup = async (req, res) => {
     }
 };
 
-
-// --- HELPER FUNCTIONS ---
-
-// Helper to upload image
+// Helper function to upload image to GridFS
 function uploadImageToGridFS(buffer, filename) {
     if (!gridfsBucket) {
         throw new Error("GridFS bucket not initialized");

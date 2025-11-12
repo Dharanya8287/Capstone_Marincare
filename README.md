@@ -38,21 +38,27 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 ## 📚 Documentation
 
 ### 🚦 Current Status
-- **[QUICK_STATUS_SUMMARY.md](./QUICK_STATUS_SUMMARY.md)** - ⭐ **START HERE** - Quick status overview (2-min read)
-- **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** - Comprehensive analysis of what's done vs pending
+- **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** - ⭐ **START HERE** - Comprehensive project status and analysis
 
-### 📋 Implementation Guides
+### 📋 Development Guides
 - **[SUMMARY.md](./SUMMARY.md)** - Quick overview and getting started guide
 - **[BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)** - Complete architecture analysis and design
 - **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Detailed API endpoint specifications
 - **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - Week-by-week implementation plan
+- **[ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)** - System architecture and diagrams
+
+### 🚀 Deployment
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete deployment guide with strategies and best practices
+
+### 🔒 Security
+- **[SECURITY_SUMMARY.md](./SECURITY_SUMMARY.md)** - Security implementation and best practices
 
 ### Quick Start
 
-1. **New Team Members:** Read [QUICK_STATUS_SUMMARY.md](./QUICK_STATUS_SUMMARY.md) first ⭐
-2. **Backend Developers:** [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) → [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) → [IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)
+1. **New Team Members:** Read [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) first ⭐
+2. **Backend Developers:** [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) → [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) → [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 3. **Frontend Developers:** [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) → [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-4. **Project Managers:** [QUICK_STATUS_SUMMARY.md](./QUICK_STATUS_SUMMARY.md) → [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)
+4. **DevOps/Deployment:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for production deployment strategies
 
 ## Links
 
