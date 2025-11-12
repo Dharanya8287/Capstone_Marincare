@@ -185,7 +185,7 @@ function UploadPage() {
 
             const res = await apiCall(
                 'post',
-                "http://localhost:5000/api/cleanups/upload",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cleanups/upload`,
                 formData,
                 true // force refresh token
             );
@@ -237,7 +237,7 @@ function UploadPage() {
 
             const res = await apiCall(
                 'post',
-                "http://localhost:5000/api/cleanups/manual",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cleanups/manual`,
                 payload,
                 true // force refresh token
             );
