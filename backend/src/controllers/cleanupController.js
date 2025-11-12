@@ -31,7 +31,17 @@ export const uploadCleanupPhoto = async (req, res) => {
         const fileId = await uploadImageToGridFS(buffer, originalname || "cleanup-upload.jpg");
 
         // 2. Classify the image (this is fast now)
-        const classificationResult = await classifyImage(buffer);
+        let classificationResult;
+        try {
+            classificationResult = await classifyImage(buffer);
+        } catch (aiError) {
+            // AI model not available - provide helpful error message
+            console.error("AI classification failed:", aiError.message);
+            return res.status(503).json({ 
+                message: "AI classification is currently unavailable. Please use manual entry or try again later.",
+                error: "AI_UNAVAILABLE"
+            });
+        }
 
         const itemCount = 1; // AI upload only counts as 1 item
 
@@ -63,7 +73,7 @@ export const uploadCleanupPhoto = async (req, res) => {
         if (error.name === "ValidationError") {
             return res.status(400).json({ message: error.message });
         }
-        res.status(500).json({ message: "Server error during cleanup upload." });
+        res.status(500).json({ message: "An error occurred during cleanup upload." });
     }
 };
 // --- END FIX ---

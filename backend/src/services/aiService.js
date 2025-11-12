@@ -30,29 +30,48 @@ const LABEL_MAP = {
 export async function initializeAI() {
     if (!classifier) {
         console.log("Loading AI model into memory. This may take a minute...");
-        try {
-            // We set a progress bar to see it loading
-            classifier = await pipeline("zero-shot-image-classification", "Xenova/clip-vit-base-patch32", {
-                progress_callback: (progress) => {
-                    if (progress.progress) {
-                        console.log(`AI Model Loading: ${progress.file} (${(progress.progress).toFixed(1)}%)`);
-                    } else {
-                        console.log(`AI Model Status: ${progress.status} - ${progress.file}`);
+        let retries = 3;
+        
+        while (retries > 0 && !classifier) {
+            try {
+                // We set a progress bar to see it loading
+                classifier = await pipeline("zero-shot-image-classification", "Xenova/clip-vit-base-patch32", {
+                    cache_dir: process.env.AI_MODEL_CACHE_DIR,
+                    progress_callback: (progress) => {
+                        if (progress.progress) {
+                            console.log(`AI Model Loading: ${progress.file} (${(progress.progress).toFixed(1)}%)`);
+                        } else {
+                            console.log(`AI Model Status: ${progress.status} - ${progress.file}`);
+                        }
                     }
-
+                });
+                console.log("✅ AI Model loaded successfully.");
+                return; // Success, exit function
+            } catch (err) {
+                retries--;
+                console.error(`❌ Failed to load AI model. Retries left: ${retries}`);
+                console.error(`Error: ${err.message}`);
+                
+                if (retries > 0) {
+                    console.log("Retrying in 5 seconds...");
+                    await new Promise(resolve => setTimeout(resolve, 5000));
                 }
-            });
-            console.log("✅ AI Model loaded successfully.");
-        } catch (err) {
-            console.error("❌ Failed to load AI model:", err);
-            // We exit because the app can't run without the AI model in this flow
-            process.exit(1);
+            }
         }
+        
+        // Don't exit - allow server to start without AI
+        // Manual upload will still work
+        console.warn("⚠️ Server starting without AI model. Only manual cleanup logging will be available.");
+        console.warn("⚠️ AI classification features will be disabled.");
     }
 }
 
 // classifyImage assumes the model is already loaded.
 export async function classifyImage(buffer) {
+    // Check if model is available before attempting classification
+    if (!classifier) {
+        throw new Error("AI model is not available. Please use manual entry or try again later.");
+    }
     if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
         throw new Error("Invalid image buffer");
     }
