@@ -1,5 +1,6 @@
 import admin from "../config/firebase.js";
 import User from "../models/User.js";
+import { validateEmail, validatePassword, validateName, sanitizeInput } from "../utils/validation.js";
 
 // Helper: check Firebase Auth for user by email
 const firebaseEmailExists = async (email) => {
@@ -19,12 +20,20 @@ export const checkEmail = async (req, res) => {
             return res.status(400).json({ exists: false, message: "Email required" });
         }
 
+        // Validate email format first
+        const validation = validateEmail(email);
+        if (!validation.valid) {
+            return res.status(400).json({ exists: false, message: validation.error });
+        }
+
+        const sanitizedEmail = validation.sanitized;
+
         // Check MongoDB first
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: sanitizedEmail });
         if (user) return res.json({ exists: true, message: "Email already registered (database)" });
 
         // Check Firebase if not in MongoDB
-        const existsInFirebase = await firebaseEmailExists(email);
+        const existsInFirebase = await firebaseEmailExists(sanitizedEmail);
         if (existsInFirebase) {
             return res.json({ exists: true, message: "Email already registered (Firebase)" });
         }
@@ -49,8 +58,29 @@ export const registerUser = async (req, res) => {
         return res.status(400).json({ success: false, message: "Please provide email, password, and name" });
     }
 
+    // Validate email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+        return res.status(400).json({ success: false, message: emailValidation.error });
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+        return res.status(400).json({ success: false, message: passwordValidation.error });
+    }
+
+    // Validate name
+    const nameValidation = validateName(name);
+    if (!nameValidation.valid) {
+        return res.status(400).json({ success: false, message: nameValidation.error });
+    }
+
+    const sanitizedEmail = emailValidation.sanitized;
+    const sanitizedName = nameValidation.sanitized;
+
     // 1. Check if user already exists in MongoDB
-    const mongoUserExists = await User.findOne({ email });
+    const mongoUserExists = await User.findOne({ email: sanitizedEmail });
     if (mongoUserExists) {
         return res.status(400).json({ success: false, message: "Email is already registered" });
     }
@@ -59,16 +89,16 @@ export const registerUser = async (req, res) => {
     try {
         // 2. Create user in Firebase Auth
         firebaseUser = await admin.auth().createUser({
-            email: email,
+            email: sanitizedEmail,
             password: password,
-            displayName: name,
+            displayName: sanitizedName,
         });
 
         // 3. Create user in MongoDB
         const newUser = await User.create({
             firebaseUid: firebaseUser.uid,
-            email: email,
-            name: name,
+            email: sanitizedEmail,
+            name: sanitizedName,
         });
 
         res.status(201).json({
@@ -117,7 +147,19 @@ export const syncUser = async (req, res) => {
         }
 
         const decoded = await admin.auth().verifyIdToken(idToken);
-        const { uid, name, email, picture } = decoded;
+        let { uid, name, email, picture } = decoded;
+
+        // Sanitize inputs
+        if (email) {
+            const emailValidation = validateEmail(email);
+            if (emailValidation.valid) {
+                email = emailValidation.sanitized;
+            }
+        }
+
+        if (name && typeof name === 'string') {
+            name = sanitizeInput(name);
+        }
 
         // Find existing user or create a new one (upsert logic)
         // This is safe for login/Google Sign-In as it won't create duplicates

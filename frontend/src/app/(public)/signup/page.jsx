@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import useAuth from "@/hooks/useAuth";
 import { useAuthContext } from "@/context/AuthContext"; // Import context hook
+import { validateEmail, validatePassword, validateName, getPasswordStrength } from "@/utils/validation";
 import {
     Box,
     Typography,
@@ -13,6 +14,7 @@ import {
     Grid,
     Divider,
     Container,
+    LinearProgress,
 } from "@mui/material";
 import {
     Visibility,
@@ -48,6 +50,7 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const [emailStatus, setEmailStatus] = useState({ checking: false, exists: false, message: "" });
+    const [passwordStrength, setPasswordStrength] = useState({ strength: 'none', color: '#gray', text: '' });
     const debounceRef = useRef(null);
 
     // This effect redirects the user away from the signup page if they are already logged in.
@@ -65,42 +68,46 @@ export default function SignupPage() {
     // All complex redirect-handling useEffect logic has been removed from this file.
 
     // All your form validation and handler functions remain the same.
-    const isValidEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
-    const isValidPassword = (password) => password && password.length >= 6 && /[a-zA-Z]/.test(password);
-    const toggleShowPassword = () => setShowPassword((p) => !p);
     const checkEmailAvailability = (email) => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        if (!email || !isValidEmail(email)) {
+        
+        // Use the new validation utility
+        const validation = validateEmail(email);
+        if (!validation.valid) {
             setEmailStatus({ checking: false, exists: false, message: "" });
             return;
         }
+        
         debounceRef.current = setTimeout(async () => {
             try {
                 setEmailStatus({ checking: true, exists: false, message: "" });
                 const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/check-email`, { params: { email } });
                 const exists = res.data.exists;
                 setEmailStatus({ checking: false, exists, message: exists ? " This email is already registered." : " Email available for registration." });
-            } catch {
-                setEmailStatus({ checking: false, exists: false, message: "" });
+            } catch (err) {
+                // Handle backend validation errors
+                if (err.response && err.response.data && err.response.data.message) {
+                    setEmailStatus({ checking: false, exists: false, message: "" });
+                    setFormErrors((prev) => ({ ...prev, email: err.response.data.message }));
+                } else {
+                    setEmailStatus({ checking: false, exists: false, message: "" });
+                }
             }
         }, 600);
     };
     const validateField = (name, value) => {
         switch (name) {
             case "name":
-                if (!value.trim()) return "Full name is required";
-                if (value.trim().length < 2) return "Name must be at least 2 characters";
-                if (!/^[A-Za-z\s]+$/.test(value)) return "Please enter a valid name";
-                return "";
+                const nameValidation = validateName(value);
+                return nameValidation.valid ? "" : nameValidation.error;
             case "email":
-                if (!value.trim()) return "Email is required";
-                if (!isValidEmail(value)) return "Enter a valid email address";
+                const emailValidation = validateEmail(value);
+                if (!emailValidation.valid) return emailValidation.error;
                 if (emailStatus.exists) return "This email is already registered.";
                 return "";
             case "password":
-                if (!value) return "Password is required";
-                if (!isValidPassword(value)) return "Password must be at least 6 characters long";
-                return "";
+                const passwordValidation = validatePassword(value);
+                return passwordValidation.valid ? "" : passwordValidation.error;
             case "confirmPassword":
                 if (!value) return "Please confirm your password";
                 if (value !== form.password) return "Passwords do not match";
@@ -108,10 +115,15 @@ export default function SignupPage() {
             default: return "";
         }
     };
+    const toggleShowPassword = () => setShowPassword((p) => !p);
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
         if (name === "email") checkEmailAvailability(value);
+        if (name === "password") {
+            // Update password strength indicator
+            setPasswordStrength(getPasswordStrength(value));
+        }
         if (touched[name]) {
             const error = validateField(name, value);
             setFormErrors((prev) => ({ ...prev, [name]: error || undefined }));
@@ -546,6 +558,36 @@ export default function SignupPage() {
                                             ),
                                         }}
                                     />
+                                    {/* Password Strength Indicator */}
+                                    {form.password && passwordStrength.strength !== 'none' && (
+                                        <Box sx={{ mt: 1 }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                                <Typography sx={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>
+                                                    Password Strength
+                                                </Typography>
+                                                <Typography sx={{ fontSize: "0.75rem", color: passwordStrength.color, fontWeight: 600 }}>
+                                                    {passwordStrength.text}
+                                                </Typography>
+                                            </Box>
+                                            <LinearProgress
+                                                variant="determinate"
+                                                value={
+                                                    passwordStrength.strength === 'weak' ? 33 :
+                                                    passwordStrength.strength === 'medium' ? 66 : 
+                                                    passwordStrength.strength === 'strong' ? 100 : 0
+                                                }
+                                                sx={{
+                                                    height: 4,
+                                                    borderRadius: 2,
+                                                    backgroundColor: 'rgba(255,255,255,0.1)',
+                                                    '& .MuiLinearProgress-bar': {
+                                                        backgroundColor: passwordStrength.color,
+                                                        borderRadius: 2,
+                                                    }
+                                                }}
+                                            />
+                                        </Box>
+                                    )}
                                     {touched.password && formErrors.password && (
                                         <Typography
                                             sx={{
