@@ -8,6 +8,23 @@ html, body {
     background-color: #000; /* fallback */
 }
 
+/* Performance optimizations */
+img, picture, video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Improve font rendering */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Reduce layout shift */
+img[width][height] {
+    height: auto;
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
