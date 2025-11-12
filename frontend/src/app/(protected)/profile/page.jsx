@@ -184,10 +184,10 @@ const ProfilePage = () => {
         try {
             await signOut(auth);
             localStorage.removeItem('user');
-            router.push('/login');
+            router.push('/landing');
         } catch (error) {
             console.error('Error signing out:', error);
-            router.push('/login');
+            router.push('/landing');
         }
     };
 

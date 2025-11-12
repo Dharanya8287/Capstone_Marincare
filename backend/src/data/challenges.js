@@ -4,8 +4,8 @@ export const challenges = [
         title: "Toronto Waterfront Challenge",
         description: "Join us in cleaning up the beautiful Toronto waterfront.",
         bannerImage: "/images/challenges/toronto-waterfront.jpg", // Use placeholder paths
-        startDate: new Date("2025-10-15"),
-        endDate: new Date("2025-10-22"),
+        startDate: new Date("2025-11-05"),
+        endDate: new Date("2025-11-20"),
         status: "active",
         locationName: "Toronto, ON",
         province: "ON",

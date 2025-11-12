@@ -14,7 +14,10 @@ export const metadata = {
         capable: true,
         statusBarStyle: "default",
         title: "WaveGuard"
-    }
+    },
+    icons: {
+        icon: "/water.png",
+    },
 };
 
 export default function RootLayout({ children }) {
