@@ -16,8 +16,10 @@ const CONFIG = {
     BLOCK_DURATION_MS: 15 * 60 * 1000,
     // Cleanup interval (5 minutes)
     CLEANUP_INTERVAL_MS: 5 * 60 * 1000,
-    // Auth-specific limits
+    // Auth-specific limits (stricter)
     AUTH_MAX_REQUESTS: 5,
+    // API-specific limits (moderate for protected routes)
+    API_MAX_REQUESTS: 100, // 100 requests per minute for API routes
 };
 
 /**
@@ -140,3 +142,8 @@ export const rateLimiter = createRateLimiter(CONFIG.MAX_REQUESTS);
  * Stricter rate limiting for login/register endpoints
  */
 export const authRateLimiter = createRateLimiter(CONFIG.AUTH_MAX_REQUESTS);
+
+/**
+ * Moderate rate limiting for API endpoints (100 req/min)
+ */
+export const apiRateLimiter = createRateLimiter(CONFIG.API_MAX_REQUESTS);

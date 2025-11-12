@@ -9,7 +9,7 @@ export default function useProfile() {
     const fetchProfile = async () => {
         setLoading(true);
         try {
-            const res = await apiCall('get', 'http://localhost:5000/api/profile');
+            const res = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
             setProfile(res.data);
             setError("");
         } catch (err) {

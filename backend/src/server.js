@@ -1,6 +1,7 @@
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { initializeAI } from "./services/aiService.js";
+import { apiRateLimiter } from "./middleware/rateLimiter.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import cleanupRoutes from "./routes/cleanupRoutes.js";
@@ -10,6 +11,9 @@ import imageRoutes from "./routes/imageRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
 
 const PORT = process.env.PORT || 5000;
+
+// Apply rate limiting to all API routes (100 requests/min)
+app.use("/api", apiRateLimiter);
 
 // Register API routes
 app.use("/api/challenges", challengeRoutes);

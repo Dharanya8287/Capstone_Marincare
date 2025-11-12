@@ -38,7 +38,7 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const response = await apiCall('get', 'http://localhost:5000/api/dashboard/stats');
+        const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/dashboard/stats`);
         setDashboardData(response.data);
         setLoading(false);
       } catch (error) {

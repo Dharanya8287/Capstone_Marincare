@@ -62,7 +62,7 @@ function ChallengeDetailsPage({ params }) {
     // Get trash categories from challenge wasteBreakdown
     const getTrashCategories = () => {
         if (!challenge || !challenge.wasteBreakdown) return [];
-
+        
         const breakdown = challenge.wasteBreakdown;
         return [
             getCategoryDisplay('plastic_bottle', breakdown.plastic_bottle),
@@ -80,10 +80,10 @@ function ChallengeDetailsPage({ params }) {
     const fetchChallenge = async (showLoading = true) => {
         try {
             if (showLoading) setLoading(true);
-
-            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            
+            const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${id}`);
             setChallenge(response.data);
-
+            
             if (showLoading) setLoading(false);
         } catch (error) {
             console.error('Error fetching challenge:', error);
@@ -95,12 +95,12 @@ function ChallengeDetailsPage({ params }) {
     // Silently refresh challenge data (no loading state)
     const refreshChallengeData = async () => {
         try {
-            const response = await apiCall('get', `http://localhost:5000/api/challenges/${id}`);
+            const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${id}`);
             // Only update if data changed to prevent unnecessary re-renders
             setChallenge(prev => {
                 const newData = response.data;
                 // Compare critical fields to see if update is needed
-                if (!prev ||
+                if (!prev || 
                     prev.totalTrashCollected !== newData.totalTrashCollected ||
                     prev.totalVolunteers !== newData.totalVolunteers ||
                     JSON.stringify(prev.wasteBreakdown) !== JSON.stringify(newData.wasteBreakdown)) {
@@ -132,21 +132,21 @@ function ChallengeDetailsPage({ params }) {
 
     const handleJoin = async () => {
         if (!challenge) return;
-
+        
         try {
             setActionLoading(true);
             await joinChallenge(challenge._id);
-
+            
             // Silently refresh challenge data to get updated volunteer count
             await refreshChallengeData();
-
+            
             setSnackbar({ open: true, message: 'Successfully joined the challenge!', severity: 'success' });
         } catch (error) {
             console.error('Error joining challenge:', error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.message || 'Error joining challenge',
-                severity: 'error'
+            setSnackbar({ 
+                open: true, 
+                message: error.response?.data?.message || 'Error joining challenge', 
+                severity: 'error' 
             });
         } finally {
             setActionLoading(false);
@@ -155,21 +155,21 @@ function ChallengeDetailsPage({ params }) {
 
     const handleLeave = async () => {
         if (!challenge) return;
-
+        
         try {
             setActionLoading(true);
             await leaveChallenge(challenge._id);
-
+            
             // Silently refresh challenge data to get updated volunteer count
             await refreshChallengeData();
-
+            
             setSnackbar({ open: true, message: 'Successfully left the challenge', severity: 'info' });
         } catch (error) {
             console.error('Error leaving challenge:', error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.message || 'Error leaving challenge',
-                severity: 'error'
+            setSnackbar({ 
+                open: true, 
+                message: error.response?.data?.message || 'Error leaving challenge', 
+                severity: 'error' 
             });
         } finally {
             setActionLoading(false);
@@ -348,7 +348,7 @@ function ChallengeDetailsPage({ params }) {
                 </Container>
             </Box>
 
-            <Container  maxWidth={false} sx={{ mt: { xs: -2, sm: -3 }, position: "relative", zIndex: 2 }}>
+            <Container maxWidth="xl" sx={{ mt: { xs: -2, sm: -3 }, position: "relative", zIndex: 2 }}>
                 <Grid container spacing={{ xs: 2, md: 3 }}>
                     {/* Top Row - Progress Cards (Full Width) */}
                     <Grid item xs={12}>
@@ -363,7 +363,6 @@ function ChallengeDetailsPage({ params }) {
                                         background: "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
                                         color: "white",
                                         height: "100%",
-                                        justifyContent: "center",
                                     }}
                                 >
                                     <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
@@ -404,7 +403,7 @@ function ChallengeDetailsPage({ params }) {
                                         p: { xs: 2.5, sm: 3 },
                                         borderRadius: "20px",
                                         boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-                                        background: joined
+                                        background: joined 
                                             ? "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)"
                                             : "linear-gradient(135deg, #64748b 0%, #475569 100%)",
                                         color: "white",
@@ -732,7 +731,7 @@ function ChallengeDetailsPage({ params }) {
                             <Typography variant="h6" sx={{ fontWeight: 700, mb: 3, color: "#1e293b" }}>
                                 Location & Details
                             </Typography>
-
+                            
                             <Stack spacing={3}>
                                 {/* Location */}
                                 <Box>
@@ -750,7 +749,7 @@ function ChallengeDetailsPage({ params }) {
                                 {/* Province */}
                                 <Box>
                                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                        <Box sx={{ width: 22, height: 22, borderRadius: "4px",
+                                        <Box sx={{ width: 22, height: 22, borderRadius: "4px", 
                                             backgroundColor: "#8b5cf6",
                                             display: "flex",
                                             alignItems: "center",
@@ -789,8 +788,8 @@ function ChallengeDetailsPage({ params }) {
                                 {/* Status */}
                                 <Box>
                                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                                        <Box sx={{ width: 22, height: 22, borderRadius: "50%",
-                                            backgroundColor: challenge.status === "active" ? "#10b981" :
+                                        <Box sx={{ width: 22, height: 22, borderRadius: "50%", 
+                                            backgroundColor: challenge.status === "active" ? "#10b981" : 
                                                            challenge.status === "completed" ? "#6b7280" : "#f59e0b",
                                             mr: 1
                                         }} />
@@ -798,12 +797,12 @@ function ChallengeDetailsPage({ params }) {
                                             Status
                                         </Typography>
                                     </Box>
-                                    <Chip
-                                        label={challenge.status.toUpperCase()}
+                                    <Chip 
+                                        label={challenge.status.toUpperCase()} 
                                         size="small"
-                                        sx={{
+                                        sx={{ 
                                             ml: 4,
-                                            backgroundColor: challenge.status === "active" ? "#10b981" :
+                                            backgroundColor: challenge.status === "active" ? "#10b981" : 
                                                            challenge.status === "completed" ? "#6b7280" : "#f59e0b",
                                             color: "white",
                                             fontWeight: 700,
@@ -876,15 +875,15 @@ function ChallengeDetailsPage({ params }) {
             </Container>
 
             {/* Snackbar for notifications */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={4000}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={4000} 
                 onClose={handleCloseSnackbar}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
-                <Alert
-                    onClose={handleCloseSnackbar}
-                    severity={snackbar.severity}
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity} 
                     sx={{ width: '100%' }}
                 >
                     {snackbar.message}

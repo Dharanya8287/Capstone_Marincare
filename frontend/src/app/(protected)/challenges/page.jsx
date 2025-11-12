@@ -77,8 +77,8 @@ function ChallengesPage() {
         try {
             setLoading(true);
             const [challengesRes, statsRes] = await Promise.all([
-                axios.get("http://localhost:5000/api/challenges"),
-                axios.get("http://localhost:5000/api/challenges/stats"),
+                axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/challenges`),
+                axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/challenges/stats`),
             ]);
             // Add region field to challenges based on province
             const challengesWithRegion = (challengesRes.data || []).map(challenge => ({

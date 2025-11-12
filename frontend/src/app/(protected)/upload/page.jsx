@@ -84,20 +84,47 @@ function UploadPage() {
         setManualForm(prev => ({ ...prev, [name]: value }));
     };
 
+    const validateFile = (file) => {
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        
+        if (file.size > maxSize) {
+            setError(`File is too large. Maximum size is 10MB.`);
+            return false;
+        }
+        
+        if (!allowedTypes.includes(file.type)) {
+            setError('Only image files (JPEG, PNG, WebP) are allowed.');
+            return false;
+        }
+        
+        return true;
+    };
+
     const handleFileSelect = (e) => {
         const files = Array.from(e.target.files);
-        setSelectedFiles(files.slice(0, 1)); // Only allow one file
         setError("");
         setSuccess("");
+        
+        if (files.length > 0 && validateFile(files[0])) {
+            setSelectedFiles(files.slice(0, 1)); // Only allow one file
+        } else {
+            setSelectedFiles([]);
+        }
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
         const files = Array.from(e.dataTransfer.files);
-        setSelectedFiles(files.slice(0, 1)); // Only allow one file
         setError("");
         setSuccess("");
+        
+        if (files.length > 0 && validateFile(files[0])) {
+            setSelectedFiles(files.slice(0, 1)); // Only allow one file
+        } else {
+            setSelectedFiles([]);
+        }
     };
 
     const handleDragOver = (e) => {
@@ -119,9 +146,14 @@ function UploadPage() {
 
     const handleCameraCapture = (e) => {
         const files = Array.from(e.target.files);
-        setSelectedFiles(files.slice(0, 1)); // Only allow one file
         setError("");
         setSuccess("");
+        
+        if (files.length > 0 && validateFile(files[0])) {
+            setSelectedFiles(files.slice(0, 1)); // Only allow one file
+        } else {
+            setSelectedFiles([]);
+        }
     };
 
     const getCategoryIcon = (label) => {
@@ -185,7 +217,7 @@ function UploadPage() {
 
             const res = await apiCall(
                 'post',
-                "http://localhost:5000/api/cleanups/upload",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cleanups/upload`,
                 formData,
                 true // force refresh token
             );
@@ -237,7 +269,7 @@ function UploadPage() {
 
             const res = await apiCall(
                 'post',
-                "http://localhost:5000/api/cleanups/manual",
+                `${process.env.NEXT_PUBLIC_API_URL}/api/cleanups/manual`,
                 payload,
                 true // force refresh token
             );

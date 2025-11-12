@@ -209,7 +209,6 @@ const ProfilePage = () => {
             await apiCall('patch', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`, updateData);
             await fetchProfile(); // Refetch profile to sync latest data
             setIsEditing(false);
-            console.log('Profile saved successfully');
         } catch (error) {
             console.error('Failed to update profile:', error);
         }
@@ -237,8 +236,7 @@ const ProfilePage = () => {
     };
 
     const handleSaveSettings = () => {
-        // Save settings logic here (e.g., API call)
-        console.log('Saving settings:', settings);
+        // TODO: Implement settings save to backend
         setOriginalSettings(settings);
     };
 
