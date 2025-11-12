@@ -2,6 +2,7 @@
 import { Box, Typography, Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 
 const FACTS = [
   "Every year, 8 million tons of plastic enter our oceans.",
@@ -49,7 +50,10 @@ export default function HomePage() {
       sx={{
         height: "100vh",
         width: "100vw",
-        backgroundImage: "url('/images/login.jpg')",
+        backgroundImage: {
+          xs: "url('/images/login-mobile.webp')",
+          md: "url('/images/login-optimized.webp')"
+        },
         backgroundSize: "cover",
         backgroundPosition: "center",
         display: "flex",
@@ -98,11 +102,10 @@ export default function HomePage() {
       >
         {/* Logo */}
         <Box
-          component="img"
-          src="/images/logowhite.png"
-          alt="WaveGuard Logo"
           sx={{
             height: "100px",
+            width: "100px",
+            position: "relative",
             marginBottom: 3,
             animation: isLoaded ? "slideInDown 0.8s ease-out both" : "none",
             "@keyframes slideInDown": {
@@ -116,7 +119,16 @@ export default function HomePage() {
               },
             },
           }}
-        />
+        >
+          <Image
+            src="/images/logowhite-optimized.webp"
+            alt="WaveGuard Logo"
+            fill
+            priority
+            sizes="100px"
+            style={{ objectFit: "contain" }}
+          />
+        </Box>
 
         {/* Title with staggered animation */}
         <Typography

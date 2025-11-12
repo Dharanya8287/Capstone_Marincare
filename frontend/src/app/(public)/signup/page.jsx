@@ -27,6 +27,7 @@ import {
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Image from "next/image";
 import {
     GlassCard,
     StyledTextField,
@@ -242,12 +243,12 @@ export default function SignupPage() {
                                 }}
                             >
                                 {/* LOGO PATH */}
-                                <img
-                                    src="/images/logoblue.png"
+                                <Image
+                                    src="/images/logoblue-optimized.webp"
                                     alt="WaveGuard Logo"
+                                    fill
+                                    sizes="52px"
                                     style={{
-                                        width: "100%",
-                                        height: "100%",
                                         objectFit: "contain",
                                         padding: "8px"
                                     }}

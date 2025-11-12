@@ -53,8 +53,8 @@ export const BackgroundStyle = {
     minHeight: "100vh",
     width: "100%",
     backgroundImage: {
-        xs: `linear-gradient(rgba(0,40,80,0.7), rgba(0,90,150,0.7)), url('/images/login-2.jpg')`,
-        md: `linear-gradient(rgba(0,40,80,0.55), rgba(0,90,150,0.55)), url('/images/login-2.jpg')`,
+        xs: `linear-gradient(rgba(0,40,80,0.7), rgba(0,90,150,0.7)), url('/images/login-2-mobile.webp')`,
+        md: `linear-gradient(rgba(0,40,80,0.55), rgba(0,90,150,0.55)), url('/images/login-2-optimized.webp')`,
     },
     backgroundSize: "cover",
     backgroundPosition: "center",
