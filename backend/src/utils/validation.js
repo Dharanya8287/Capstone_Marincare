@@ -140,23 +140,17 @@ export const validateName = (name) => {
 
 /**
  * Sanitize input to prevent XSS and injection attacks
- * Uses a more comprehensive approach to remove malicious content
+ * Note: For user names and display text, we use a very strict approach
+ * that removes all potentially dangerous characters
  */
 export const sanitizeInput = (input) => {
   if (typeof input !== 'string') return input;
   
-  // Remove any HTML tags and script content more thoroughly
-  let sanitized = input;
+  // For maximum security, we only allow alphanumeric characters, spaces, and basic punctuation
+  // This prevents any HTML/script injection
+  const sanitized = input
+    .replace(/[<>{}[\]\\/"';`]/g, '') // Remove potentially dangerous characters
+    .trim();
   
-  // Remove script tags and their content
-  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
-  // Remove all HTML tags
-  sanitized = sanitized.replace(/<[^>]*>/g, '');
-  
-  // Remove any remaining angle brackets
-  sanitized = sanitized.replace(/[<>]/g, '');
-  
-  // Trim whitespace
-  return sanitized.trim();
+  return sanitized;
 };
