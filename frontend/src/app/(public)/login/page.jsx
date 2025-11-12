@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import useAuth from "@/hooks/useAuth";
+import { validateEmail, validatePassword } from "@/utils/validation";
 import {
     Box,
     Typography,
@@ -121,33 +122,12 @@ export default function LoginPage() {
         fetchLoginStats();
     }, []);
 
-    const isValidEmail = (email) =>
-        /^[\w.%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(email);
-
-    const validateField = (name, value) => {
-        switch (name) {
-            case "email":
-                if (!value.trim()) return "Email address is required";
-                if (!isValidEmail(value)) return "Enter a valid email address";
-                if (!emailStatus.checking && !emailStatus.exists && value)
-                    return "No account found with this email.";
-                return "";
-            case "password":
-                if (!value) return "Password is required";
-                if (value.length < 6)
-                    return "Password must be at least 6 characters";
-                return "";
-            default:
-                return "";
-        }
-    };
-
-    const toggleShowPassword = () => setShowPassword((p) => !p);
-
-    // Debounced email check (live validation)
     const checkEmailExists = (email) => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        if (!email || !isValidEmail(email)) {
+        
+        // Use the new validation utility
+        const validation = validateEmail(email);
+        if (!validation.valid) {
             setEmailStatus({ checking: false, exists: false, message: "" });
             return;
         }
@@ -171,11 +151,38 @@ export default function LoginPage() {
                     ...prev,
                     email: !exists ? "No account found with this email." : undefined,
                 }));
-            } catch {
-                setEmailStatus({ checking: false, exists: false, message: "" });
+            } catch (err) {
+                // Handle backend validation errors
+                if (err.response && err.response.data && err.response.data.message) {
+                    setEmailStatus({ checking: false, exists: false, message: "" });
+                    setFormErrors((prev) => ({ ...prev, email: err.response.data.message }));
+                } else {
+                    setEmailStatus({ checking: false, exists: false, message: "" });
+                }
             }
         }, 600);
     };
+
+    const validateField = (name, value) => {
+        switch (name) {
+            case "email":
+                const emailValidation = validateEmail(value);
+                if (!emailValidation.valid) return emailValidation.error;
+                if (!emailStatus.checking && !emailStatus.exists && value)
+                    return "No account found with this email.";
+                return "";
+            case "password":
+                const passwordValidation = validatePassword(value);
+                // For login, we check if password meets basic requirements but don't enforce strength
+                if (!value) return "Password is required";
+                if (value.length < 6) return "Password must be at least 6 characters";
+                return "";
+            default:
+                return "";
+        }
+    };
+
+    const toggleShowPassword = () => setShowPassword((p) => !p);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
