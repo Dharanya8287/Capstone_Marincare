@@ -1,7 +1,7 @@
 import Achievement from "../models/Achievement.js";
 import User from "../models/User.js";
 
-// Define comprehensive achievement templates (Expanded to 12)
+// Define comprehensive achievement templates
 const ACHIEVEMENT_TEMPLATES = [
     // Participation
     { type: "first_challenge", title: "Challenge Starter", description: "Join your first challenge", icon: "🎯", goal: 1, points: 100, category: "participation", tier: "bronze" },
@@ -51,7 +51,7 @@ async function getOrCreateAchievement(userId, template) {
         return achievement;
     } catch (error) {
         if (error.code === 11000) {
-            return await Achievement.findOne({
+            return Achievement.findOne({
                 user: userId,
                 achievementType: template.type
             });
@@ -138,7 +138,7 @@ export const getUserAchievements = async (req, res) => {
         res.json({ success: true, achievements: updatedAchievements });
 
     } catch (error) {
-        console.error("❌ Error fetching achievements:", error);
+        console.error("Error fetching achievements:", error);
         res.status(500).json({ success: false, message: "Server Error", error: error.message });
     }
 };
@@ -168,7 +168,7 @@ export const getLeaderboard = async (req, res) => {
         res.json({ success: true, leaderboard });
 
     } catch (error) {
-        console.error("❌ Error fetching leaderboard:", error);
+        console.error("Error fetching leaderboard:", error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
@@ -218,7 +218,7 @@ export const getMilestones = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Error fetching milestones:", error);
+        console.error("Error fetching milestones:", error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
@@ -259,7 +259,7 @@ export const getAchievementStats = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Error fetching achievement stats:", error);
+        console.error("Error fetching achievement stats:", error);
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };

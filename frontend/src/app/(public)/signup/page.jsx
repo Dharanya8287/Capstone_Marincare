@@ -240,17 +240,17 @@ export default function SignupPage() {
                                     alignItems: "center",
                                     justifyContent: "center",
                                     overflow: "hidden",
+                                    position: "relative", // Add this
                                 }}
                             >
                                 {/* LOGO PATH */}
                                 <Image
                                     src="/images/logoblue-optimized.webp"
                                     alt="WaveGuard Logo"
-                                    fill
-                                    sizes="52px"
+                                    width={36} // Changed from fill
+                                    height={36} // Changed from fill
                                     style={{
                                         objectFit: "contain",
-                                        padding: "8px"
                                     }}
                                 />
                             </Box>

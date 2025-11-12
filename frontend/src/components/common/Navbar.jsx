@@ -44,7 +44,7 @@ export default function Navbar() {
                             transform: "scale(1.02)"
                         }
                     }}
-                    onClick={() => router.push("/")}
+                    onClick={() => router.push("/home")}
                 >
                     <Box
                         component="img"
