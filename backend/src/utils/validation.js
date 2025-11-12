@@ -62,6 +62,12 @@ export const validateEmail = (email) => {
     return { valid: false, error: 'Invalid domain extension' };
   }
 
+  // Common typo check - reject common misspellings
+  const commonTypos = ['con', 'cmo', 'cim', 'ocm', 'nmo'];
+  if (commonTypos.includes(tld.toLowerCase())) {
+    return { valid: false, error: 'Invalid domain extension (possible typo)' };
+  }
+
   return { valid: true, error: null, sanitized: trimmedEmail.toLowerCase() };
 };
 
