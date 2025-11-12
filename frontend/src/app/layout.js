@@ -16,8 +16,16 @@ export const metadata = {
         title: "WaveGuard"
     },
     icons: {
-        icon: "/water.png",
+        icon: "/favicon.ico",
+        shortcut: "/favicon.ico",
+        apple: "/favicon.ico",
     },
+};
+export const viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
 };
 
 export default function RootLayout({ children }) {
