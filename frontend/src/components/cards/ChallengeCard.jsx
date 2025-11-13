@@ -14,6 +14,8 @@ import {
     DialogContentText,
     DialogActions,
     CircularProgress,
+    Snackbar,
+    Alert,
 } from "@mui/material";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -21,6 +23,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useRouter } from "next/navigation";
 import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
+import { getCurrentLocation, formatLocationError } from "@/utils/geolocation";
 
 const ChallengeCard = ({ challenge }) => {
     const {
@@ -42,6 +45,7 @@ const ChallengeCard = ({ challenge }) => {
     
     const [openDialog, setOpenDialog] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
     const handleCardClick = () => {
         router.push(`/challenges/${_id}`);
@@ -62,9 +66,42 @@ const ChallengeCard = ({ challenge }) => {
     const handleConfirmJoin = async () => {
         try {
             setIsJoining(true);
-            await joinChallenge(_id);
+            
+            // Get user's current location
+            let userLocation = null;
+            try {
+                setSnackbar({ 
+                    open: true, 
+                    message: 'Getting your location...', 
+                    severity: 'info' 
+                });
+                
+                userLocation = await getCurrentLocation();
+                
+                console.log('Location obtained:', userLocation);
+            } catch (locationError) {
+                console.error('Location error:', locationError);
+                setSnackbar({ 
+                    open: true, 
+                    message: formatLocationError(locationError), 
+                    severity: 'error' 
+                });
+                setIsJoining(false);
+                setOpenDialog(false);
+                return;
+            }
+            
+            // Join challenge with location
+            await joinChallenge(_id, userLocation);
+            
             setOpenDialog(false);
             setIsJoining(false);
+            
+            setSnackbar({ 
+                open: true, 
+                message: 'Successfully joined the challenge!', 
+                severity: 'success' 
+            });
             
             // Wait a bit to let the button update visually, then redirect
             setTimeout(() => {
@@ -73,13 +110,42 @@ const ChallengeCard = ({ challenge }) => {
         } catch (error) {
             console.error('Error joining challenge:', error);
             setIsJoining(false);
-            // Keep dialog open to show error or close it
             setOpenDialog(false);
+            
+            // Handle location verification errors
+            const errorData = error.response?.data;
+            const errorCode = errorData?.error;
+            
+            if (errorCode === 'LOCATION_TOO_FAR') {
+                const distance = errorData?.distance;
+                const maxDistance = errorData?.maxDistance;
+                setSnackbar({ 
+                    open: true, 
+                    message: `You are ${distance} km from the challenge location (max allowed: ${maxDistance} km). Please be closer to join.`, 
+                    severity: 'error' 
+                });
+            } else if (errorCode === 'LOCATION_REQUIRED') {
+                setSnackbar({ 
+                    open: true, 
+                    message: 'Location is required to join this challenge', 
+                    severity: 'error' 
+                });
+            } else {
+                setSnackbar({ 
+                    open: true, 
+                    message: errorData?.message || 'Error joining challenge', 
+                    severity: 'error' 
+                });
+            }
         }
     };
 
     const handleCancelJoin = () => {
         setOpenDialog(false);
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
     };
 
     const progress = goal > 0 ? Math.min((totalTrashCollected / goal) * 100, 100) : 0;
@@ -298,6 +364,22 @@ const ChallengeCard = ({ challenge }) => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Snackbar for notifications */}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={6000} 
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity} 
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </>
     );
 };
