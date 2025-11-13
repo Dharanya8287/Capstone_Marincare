@@ -14,6 +14,7 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 
 - Upload photos of collected trash using a mobile camera
 - AI automatically identifies and categorizes waste types
+- **Live location verification for data accuracy** 🆕
 - Track personal and community cleanup impact
 - Join cleanup challenges and events
 - Earn badges and rewards for participation
@@ -39,6 +40,11 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 
 ### 🚦 Current Status
 - **[IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md)** - ⭐ **START HERE** - Comprehensive project status and analysis
+
+### 🆕 New Features
+- **[LOCATION_IMPLEMENTATION_SUMMARY.md](./LOCATION_IMPLEMENTATION_SUMMARY.md)** - Live location feature overview
+- **[LOCATION_FEATURE_ANALYSIS.md](./LOCATION_FEATURE_ANALYSIS.md)** - Technical analysis and architecture
+- **[LOCATION_USER_GUIDE.md](./LOCATION_USER_GUIDE.md)** - User guide for location permissions
 
 ### 📋 Development Guides
 - **[SUMMARY.md](./SUMMARY.md)** - Quick overview and getting started guide
