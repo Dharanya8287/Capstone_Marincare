@@ -48,6 +48,7 @@ import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
 import { useAuthContext } from "@/context/AuthContext";
 import { apiCall } from "@/utils/api";
 import { trashCategories } from "@/utils/trashCategories";
+import { getCurrentLocation, formatLocationError } from "@/utils/geolocation";
 
 function UploadPage() {
     const router = useRouter();
@@ -191,7 +192,7 @@ function UploadPage() {
         }
     };
 
-    // --- FIX: Updated handleSubmit for SYNCHRONOUS flow ---
+    // --- FIX: Updated handleSubmit for SYNCHRONOUS flow with location ---
     const handleSubmit = async () => {
         if (!selectedChallenge) {
             setError("Please select a challenge first!");
@@ -211,9 +212,23 @@ function UploadPage() {
         setSuccess("");
 
         try {
+            // Get user's current location
+            let userLocation = null;
+            try {
+                userLocation = await getCurrentLocation();
+                console.log('Location obtained:', userLocation);
+            } catch (locationError) {
+                console.error('Location error:', locationError);
+                setError(formatLocationError(locationError));
+                setUploading(false);
+                return;
+            }
+
             const formData = new FormData();
             formData.append("challengeId", selectedChallenge);
             formData.append("image", selectedFiles[0]);
+            formData.append('latitude', userLocation.latitude.toString());
+            formData.append('longitude', userLocation.longitude.toString());
 
             const res = await apiCall(
                 'post',
@@ -230,7 +245,22 @@ function UploadPage() {
 
         } catch (err) {
             console.error("AI Upload error:", err);
-            setError(err.response?.data?.message || "An error occurred during upload.");
+            
+            // Handle location verification errors
+            const errorData = err.response?.data;
+            const errorCode = errorData?.error;
+            
+            if (errorCode === 'LOCATION_TOO_FAR') {
+                const distance = errorData?.distance;
+                const maxDistance = errorData?.maxDistance;
+                setError(`You are ${distance} km from the challenge location (max allowed: ${maxDistance} km)`);
+            } else if (errorCode === 'LOCATION_REQUIRED') {
+                setError('Location is required to upload trash to this challenge');
+            } else if (errorCode === 'AI_UNAVAILABLE') {
+                setError('AI classification is currently unavailable. Please try manual entry.');
+            } else {
+                setError(errorData?.message || "An error occurred during upload.");
+            }
         } finally {
             setUploading(false);
         }
@@ -261,10 +291,24 @@ function UploadPage() {
         setSuccess("");
 
         try {
+            // Get user's current location
+            let userLocation = null;
+            try {
+                userLocation = await getCurrentLocation();
+                console.log('Location obtained:', userLocation);
+            } catch (locationError) {
+                console.error('Location error:', locationError);
+                setError(formatLocationError(locationError));
+                setUploading(false);
+                return;
+            }
+
             const payload = {
                 challengeId: selectedChallenge,
                 label: manualForm.label,
                 itemCount: count,
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude
             };
 
             const res = await apiCall(
@@ -285,7 +329,20 @@ function UploadPage() {
 
         } catch (err) {
             console.error("Manual Log error:", err);
-            setError(err.response?.data?.message || "An error occurred while logging.");
+            
+            // Handle location verification errors
+            const errorData = err.response?.data;
+            const errorCode = errorData?.error;
+            
+            if (errorCode === 'LOCATION_TOO_FAR') {
+                const distance = errorData?.distance;
+                const maxDistance = errorData?.maxDistance;
+                setError(`You are ${distance} km from the challenge location (max allowed: ${maxDistance} km)`);
+            } else if (errorCode === 'LOCATION_REQUIRED') {
+                setError('Location is required to upload trash to this challenge');
+            } else {
+                setError(errorData?.message || "An error occurred while logging.");
+            }
         } finally {
             setUploading(false);
         }

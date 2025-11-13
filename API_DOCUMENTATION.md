@@ -73,7 +73,7 @@ Get aggregated challenge statistics
 ### Cleanups
 
 #### `POST /cleanups/upload`
-Upload a cleanup photo for AI classification
+Upload a cleanup photo for AI classification (requires location verification)
 
 **Authentication:** Required
 
@@ -82,17 +82,21 @@ Upload a cleanup photo for AI classification
 - Body:
   - `image`: File (max 10MB)
   - `challengeId`: String (MongoDB ObjectId)
+  - `latitude`: Number (user's current latitude)
+  - `longitude`: Number (user's current longitude)
 
 **Example:**
 ```javascript
 const formData = new FormData();
 formData.append('image', file);
 formData.append('challengeId', '65c2a123456789012345678a');
+formData.append('latitude', '43.6532');
+formData.append('longitude', '-79.3832');
 
 await apiCall('post', 'http://localhost:5000/api/cleanups/upload', formData, true);
 ```
 
-**Response:**
+**Response (Success):**
 ```json
 {
   "message": "Success! AI classified as: plastic_bottle",
@@ -100,6 +104,24 @@ await apiCall('post', 'http://localhost:5000/api/cleanups/upload', formData, tru
     "label": "plastic_bottle",
     "confidence": 0.87
   }
+}
+```
+
+**Response (Location Too Far):**
+```json
+{
+  "message": "You are too far from the challenge location (8.5 km away, maximum allowed is 5 km)",
+  "distance": 8.5,
+  "maxDistance": 5,
+  "error": "LOCATION_TOO_FAR"
+}
+```
+
+**Response (AI Unavailable):**
+```json
+{
+  "message": "AI classification is currently unavailable. Please use manual entry or try again later.",
+  "error": "AI_UNAVAILABLE"
 }
 ```
 
@@ -111,7 +133,7 @@ await apiCall('post', 'http://localhost:5000/api/cleanups/upload', formData, tru
 ---
 
 #### `POST /cleanups/manual`
-Manually log a cleanup
+Manually log a cleanup (requires location verification)
 
 **Authentication:** Required
 
@@ -120,7 +142,9 @@ Manually log a cleanup
 {
   "challengeId": "65c2a123456789012345678a",
   "label": "plastic_bottle",
-  "itemCount": 10
+  "itemCount": 10,
+  "latitude": 43.6532,
+  "longitude": -79.3832
 }
 ```
 
@@ -133,15 +157,29 @@ Manually log a cleanup
 - `glass_bottle`
 - `unknown`
 
-**Response:**
+**Response (Success):**
 ```json
 {
   "message": "Successfully logged 10 item(s) as plastic_bottle."
 }
 ```
 
+**Response (Location Too Far):**
+```json
+{
+  "message": "You are too far from the challenge location (8.5 km away, maximum allowed is 5 km)",
+  "distance": 8.5,
+  "maxDistance": 5,
+  "error": "LOCATION_TOO_FAR"
+}
+```
+
 **Side Effects:**
 - Same as upload endpoint (updates user and challenge stats)
+
+**Notes:**
+- Location verification can be bypassed for testing using environment variables
+- See `LOCATION_FEATURE_ANALYSIS.md` for testing configuration
 
 ---
 

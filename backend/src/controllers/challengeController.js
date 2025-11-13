@@ -1,6 +1,12 @@
 import Challenge from "../models/Challenge.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
+import { 
+    validateLocation, 
+    shouldBypassLocationCheck, 
+    isLocationVerificationEnabled,
+    getMaxAllowedDistance 
+} from "../utils/locationUtils.js";
 
 // Helper function to determine challenge status based on dates
 const getChallengeStatus = (startDate, endDate) => {
@@ -107,7 +113,9 @@ export const getChallengeById = async (req, res) => {
 export const joinChallenge = async (req, res) => {
     try {
         const { id } = req.params;
+        const { location } = req.body; // { latitude, longitude }
         const userId = req.mongoUser._id;
+        const userEmail = req.mongoUser.email;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid challenge ID" });
@@ -131,6 +139,30 @@ export const joinChallenge = async (req, res) => {
         const user = await User.findById(userId);
         if (user.joinedChallenges.includes(id)) {
             return res.status(400).json({ message: "Already joined this challenge" });
+        }
+
+        // Location verification
+        if (isLocationVerificationEnabled() && !shouldBypassLocationCheck(userEmail)) {
+            if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+                return res.status(400).json({ 
+                    message: "Location is required to join this challenge",
+                    error: "LOCATION_REQUIRED"
+                });
+            }
+
+            const maxDistance = getMaxAllowedDistance();
+            const validation = validateLocation(location, challenge.location, maxDistance);
+            
+            if (!validation.isValid) {
+                return res.status(403).json({ 
+                    message: validation.message,
+                    distance: validation.distance,
+                    maxDistance: maxDistance,
+                    error: "LOCATION_TOO_FAR"
+                });
+            }
+
+            console.log(`[Location] User ${userEmail} verified for challenge ${id}: ${validation.message}`);
         }
 
         // Add challenge to user's joined challenges and increment totalChallenges
