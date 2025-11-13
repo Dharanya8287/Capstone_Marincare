@@ -5,6 +5,12 @@ import { classifyImage } from "../services/aiService.js";
 import Cleanup from "../models/Cleanup.js";
 import User from "../models/User.js";
 import Challenge from "../models/Challenge.js";
+import { 
+    validateLocation, 
+    shouldBypassLocationCheck, 
+    isLocationVerificationEnabled,
+    getMaxAllowedDistance 
+} from "../utils/locationUtils.js";
 
 /**
  * @route   POST /api/cleanups/upload
@@ -23,10 +29,45 @@ export const uploadCleanupPhoto = async (req, res) => {
     }
 
     const { buffer, originalname } = req.file;
-    const { challengeId } = req.body;
-    const userId = req.mongoUser._id; // From userMiddleware
+    const { challengeId, latitude, longitude } = req.body;
+    const userId = req.mongoUser._id;
+    const userEmail = req.mongoUser.email;
 
     try {
+        // Get challenge for location validation
+        const challenge = await Challenge.findById(challengeId);
+        if (!challenge) {
+            return res.status(404).json({ message: "Challenge not found." });
+        }
+
+        // Location verification
+        if (isLocationVerificationEnabled() && !shouldBypassLocationCheck(userEmail)) {
+            const lat = parseFloat(latitude);
+            const lng = parseFloat(longitude);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                return res.status(400).json({ 
+                    message: "Location is required to upload trash to this challenge",
+                    error: "LOCATION_REQUIRED"
+                });
+            }
+
+            const userLocation = { latitude: lat, longitude: lng };
+            const maxDistance = getMaxAllowedDistance();
+            const validation = validateLocation(userLocation, challenge.location, maxDistance);
+            
+            if (!validation.isValid) {
+                return res.status(403).json({ 
+                    message: validation.message,
+                    distance: validation.distance,
+                    maxDistance: maxDistance,
+                    error: "LOCATION_TOO_FAR"
+                });
+            }
+
+            console.log(`[Location] User ${userEmail} verified for upload to challenge ${challengeId}: ${validation.message}`);
+        }
+
         // 1. Save image to GridFS
         const fileId = await uploadImageToGridFS(buffer, originalname || "cleanup-upload.jpg");
 
@@ -83,8 +124,9 @@ export const uploadCleanupPhoto = async (req, res) => {
  * @access  Private
  */
 export const logManualCleanup = async (req, res) => {
-    const { challengeId, label, itemCount } = req.body;
+    const { challengeId, label, itemCount, latitude, longitude } = req.body;
     const userId = req.mongoUser._id;
+    const userEmail = req.mongoUser.email;
 
     // Validation
     if (!challengeId || !label || !itemCount) {
@@ -98,6 +140,40 @@ export const logManualCleanup = async (req, res) => {
     }
 
     try {
+        // Get challenge for location validation
+        const challenge = await Challenge.findById(challengeId);
+        if (!challenge) {
+            return res.status(404).json({ message: "Challenge not found." });
+        }
+
+        // Location verification
+        if (isLocationVerificationEnabled() && !shouldBypassLocationCheck(userEmail)) {
+            const lat = parseFloat(latitude);
+            const lng = parseFloat(longitude);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                return res.status(400).json({ 
+                    message: "Location is required to upload trash to this challenge",
+                    error: "LOCATION_REQUIRED"
+                });
+            }
+
+            const userLocation = { latitude: lat, longitude: lng };
+            const maxDistance = getMaxAllowedDistance();
+            const validation = validateLocation(userLocation, challenge.location, maxDistance);
+            
+            if (!validation.isValid) {
+                return res.status(403).json({ 
+                    message: validation.message,
+                    distance: validation.distance,
+                    maxDistance: maxDistance,
+                    error: "LOCATION_TOO_FAR"
+                });
+            }
+
+            console.log(`[Location] User ${userEmail} verified for manual log to challenge ${challengeId}: ${validation.message}`);
+        }
+
         const count = parseInt(itemCount, 10);
 
         // 1. Create the Cleanup record

@@ -37,9 +37,14 @@ export const JoinedChallengesProvider = ({ children }) => {
         fetchJoinedChallenges();
     }, [isAuthenticated, user]);
 
-    const joinChallenge = async (challengeId) => {
+    const joinChallenge = async (challengeId, location = null) => {
         try {
-            const response = await apiCall('post', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/join`);
+            const requestBody = location ? { location } : {};
+            const response = await apiCall(
+                'post', 
+                `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/join`,
+                requestBody
+            );
             
             // Refresh the list after joining
             await fetchJoinedChallenges();

@@ -30,6 +30,7 @@ import withAuth from "@/components/auth/withAuth";
 import { useAuthContext } from "@/context/AuthContext";
 import { useJoinedChallenges } from "@/context/JoinedChallengesContext";
 import { apiCall } from "@/utils/api";
+import { getCurrentLocation, formatLocationError } from "@/utils/geolocation";
 
 function ChallengeDetailsPage({ params }) {
     const { id } = use(params);
@@ -135,7 +136,32 @@ function ChallengeDetailsPage({ params }) {
         
         try {
             setActionLoading(true);
-            await joinChallenge(challenge._id);
+            
+            // Get user's current location
+            let userLocation = null;
+            try {
+                setSnackbar({ 
+                    open: true, 
+                    message: 'Requesting your location...', 
+                    severity: 'info' 
+                });
+                
+                userLocation = await getCurrentLocation();
+                
+                console.log('Location obtained:', userLocation);
+            } catch (locationError) {
+                console.error('Location error:', locationError);
+                setSnackbar({ 
+                    open: true, 
+                    message: formatLocationError(locationError), 
+                    severity: 'error' 
+                });
+                setActionLoading(false);
+                return;
+            }
+            
+            // Join challenge with location
+            await joinChallenge(challenge._id, userLocation);
             
             // Silently refresh challenge data to get updated volunteer count
             await refreshChallengeData();
@@ -143,11 +169,32 @@ function ChallengeDetailsPage({ params }) {
             setSnackbar({ open: true, message: 'Successfully joined the challenge!', severity: 'success' });
         } catch (error) {
             console.error('Error joining challenge:', error);
-            setSnackbar({ 
-                open: true, 
-                message: error.response?.data?.message || 'Error joining challenge', 
-                severity: 'error' 
-            });
+            
+            // Handle location verification errors
+            const errorData = error.response?.data;
+            const errorCode = errorData?.error;
+            
+            if (errorCode === 'LOCATION_TOO_FAR') {
+                const distance = errorData?.distance;
+                const maxDistance = errorData?.maxDistance;
+                setSnackbar({ 
+                    open: true, 
+                    message: `You are ${distance} km from the challenge location (max allowed: ${maxDistance} km)`, 
+                    severity: 'error' 
+                });
+            } else if (errorCode === 'LOCATION_REQUIRED') {
+                setSnackbar({ 
+                    open: true, 
+                    message: 'Location is required to join this challenge', 
+                    severity: 'error' 
+                });
+            } else {
+                setSnackbar({ 
+                    open: true, 
+                    message: errorData?.message || 'Error joining challenge', 
+                    severity: 'error' 
+                });
+            }
         } finally {
             setActionLoading(false);
         }
