@@ -3,6 +3,13 @@
  * Provides geolocation validation and distance calculation for challenges
  */
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /**
  * Convert degrees to radians
  * @param {number} degrees - Angle in degrees
@@ -100,21 +107,57 @@ export function validateLocation(userLocation, challengeLocation, maxDistanceKm 
 }
 
 /**
+ * Read environment variable with runtime refresh for testing mode
+ * This allows TESTING_MODE to be updated without server restart
+ * 
+ * @param {string} key - Environment variable key
+ * @returns {string|undefined} Environment variable value
+ */
+function getEnvVariable(key) {
+    // For testing-related variables, try to read from .env file in real-time
+    if (key === 'TESTING_MODE' || key === 'TESTING_BYPASS_EMAILS') {
+        try {
+            const envPath = path.resolve(__dirname, '../../.env');
+            if (fs.existsSync(envPath)) {
+                const envContent = fs.readFileSync(envPath, 'utf8');
+                const lines = envContent.split('\n');
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    // Skip comments and empty lines
+                    if (trimmedLine.startsWith('#') || !trimmedLine) continue;
+                    // Parse KEY=VALUE
+                    const match = trimmedLine.match(/^([^=]+)=(.*)$/);
+                    if (match && match[1].trim() === key) {
+                        return match[2].trim();
+                    }
+                }
+            }
+        } catch (error) {
+            // If reading .env file fails, fall back to process.env
+            console.warn(`[Location] Failed to read .env file for ${key}, using process.env`);
+        }
+    }
+    
+    // Fall back to process.env for all other variables or if .env read failed
+    return process.env[key];
+}
+
+/**
  * Check if location verification should be bypassed for testing purposes
  * 
  * @param {string} userEmail - User's email address
  * @returns {boolean} Whether to bypass location check
  */
 export function shouldBypassLocationCheck(userEmail) {
-    // Check if testing mode is enabled globally
-    const testingMode = process.env.TESTING_MODE === 'true';
+    // Check if testing mode is enabled globally (with runtime refresh)
+    const testingMode = getEnvVariable('TESTING_MODE') === 'true';
     if (testingMode) {
         console.log('[Location] Testing mode enabled - bypassing location check');
         return true;
     }
 
-    // Check if user email is in bypass list
-    const bypassEmails = process.env.TESTING_BYPASS_EMAILS?.split(',').map(e => e.trim()) || [];
+    // Check if user email is in bypass list (with runtime refresh)
+    const bypassEmails = getEnvVariable('TESTING_BYPASS_EMAILS')?.split(',').map(e => e.trim()) || [];
     const shouldBypass = bypassEmails.includes(userEmail);
     
     if (shouldBypass) {
