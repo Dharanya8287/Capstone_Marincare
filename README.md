@@ -46,6 +46,10 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 - **[LOCATION_FEATURE_ANALYSIS.md](./LOCATION_FEATURE_ANALYSIS.md)** - Technical analysis and architecture
 - **[LOCATION_USER_GUIDE.md](./LOCATION_USER_GUIDE.md)** - User guide for location permissions
 
+### 🤖 AI Chatbot Feature (Future)
+- **[CHATBOT_FEATURE_SUMMARY.md](./CHATBOT_FEATURE_SUMMARY.md)** - ⭐ Executive summary and quick answers
+- **[CHATBOT_IMPLEMENTATION_PLAN.md](./CHATBOT_IMPLEMENTATION_PLAN.md)** - Comprehensive implementation guide and technical details
+
 ### 📋 Development Guides
 - **[SUMMARY.md](./SUMMARY.md)** - Quick overview and getting started guide
 - **[BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md)** - Complete architecture analysis and design
