@@ -66,16 +66,22 @@ async function getOrCreateAchievement(userId, template) {
 export const getUserAchievements = async (req, res) => {
     try {
         const userId = req.user.uid;
-        const user = await User.findOne({ firebaseUid: userId });
+        const user = await User.findOne({ firebaseUid: userId }).populate('joinedChallenges', 'province');
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+
+        // Calculate unique provinces from joined challenges
+        const uniqueProvinces = user.joinedChallenges 
+            ? [...new Set(user.joinedChallenges.map(challenge => challenge.province).filter(p => p))]
+            : [];
 
         const userStats = {
             totalChallenges: user.totalChallenges || 0,
             totalItemsCollected: user.totalItemsCollected || 0,
             impactScore: user.impactScore || 0,
             totalCleanups: user.totalCleanups || 0,
+            uniqueProvincesCount: uniqueProvinces.length,
         };
 
         const achievements = await Promise.all(
@@ -110,6 +116,9 @@ export const getUserAchievements = async (req, res) => {
                         break;
                     case "first_cleanup":
                         currentProgress = userStats.totalCleanups >= 1 ? 1 : 0;
+                        break;
+                    case "regional_hero":
+                        currentProgress = userStats.uniqueProvincesCount;
                         break;
                     default:
                         console.warn(`Achievement type '${achievement.achievementType}' not implemented in progress logic`);
