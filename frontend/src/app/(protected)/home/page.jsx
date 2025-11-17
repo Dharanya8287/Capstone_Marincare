@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import withAuth from '@/components/auth/withAuth';
 import { Box, Typography, Grid, Card, CircularProgress } from "@mui/material";
+import { apiCall } from "@/utils/api";
 
 import {
     HeroSection,
@@ -29,6 +30,7 @@ import {
 
 function HomePage() {
     const router = useRouter();
+    const [user, setUser] = useState(null);
     const [stats, setStats] = useState({
         totalItemsCollected: 0,
         activeContributors: 0,
@@ -37,6 +39,25 @@ function HomePage() {
         beachesCleaned: 0
     });
     const [loading, setLoading] = useState(true);
+    const [userLoading, setUserLoading] = useState(true);
+
+    // Fetch user profile
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
+                if (response?.data) {
+                    setUser(response.data);
+                }
+            } catch (error) {
+                console.error("Error fetching user profile:", error);
+            } finally {
+                setUserLoading(false);
+            }
+        };
+
+        fetchUserProfile();
+    }, []);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -56,6 +77,26 @@ function HomePage() {
         fetchStats();
     }, []);
 
+    // Determine if user is first-time (no cleanups) or returning user
+    const isFirstTimeUser = user && user.totalCleanups === 0;
+    
+    // Get greeting based on time of day
+    const getTimeBasedGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    };
+
+    // Get user's first name or fallback to "there"
+    const getFirstName = () => {
+        if (!user || !user.name) return "there";
+        return user.name.split(" ")[0];
+    };
+
+    const greeting = getTimeBasedGreeting();
+    const firstName = getFirstName();
+
     return (
         <>
 
@@ -64,13 +105,41 @@ function HomePage() {
                 <HeroOverlay>
                     <HeroTag>WaveGuard Platform</HeroTag>
                     <HeroTitle>
-                        Welcome to Your <br />
-                        <span style={{ color: "#67e8c3" }}>Impact Dashboard</span>
+                        {userLoading ? (
+                            <>
+                                Welcome to Your <br />
+                                <span style={{ color: "#67e8c3" }}>Impact Dashboard</span>
+                            </>
+                        ) : isFirstTimeUser ? (
+                            <>
+                                {greeting}, {firstName}! 👋<br />
+                                <span style={{ color: "#67e8c3" }}>Welcome to WaveGuard</span>
+                            </>
+                        ) : (
+                            <>
+                                Welcome Back, {firstName}! <br />
+                                <span style={{ color: "#67e8c3" }}>Your Impact Continues</span>
+                            </>
+                        )}
                     </HeroTitle>
                     <HeroDesc>
-                        Track your contributions, join cleanup challenges, and connect with 
-                        volunteers making a difference. Your efforts are creating real change 
-                        across Canada's coastlines.
+                        {userLoading ? (
+                            <>
+                                Track your contributions, join cleanup challenges, and connect with 
+                                volunteers making a difference. Your efforts are creating real change 
+                                across Canada's coastlines.
+                            </>
+                        ) : isFirstTimeUser ? (
+                            <>
+                                Ready to make your first impact? Join cleanup challenges, upload your contributions, 
+                                and track your progress. Let's protect Canada's 243,042 km of coastline together!
+                            </>
+                        ) : (
+                            <>
+                                Continue making a difference! You've collected {user?.totalItemsCollected || 0} items 
+                                across {user?.totalCleanups || 0} cleanups. Every contribution helps protect our oceans.
+                            </>
+                        )}
                     </HeroDesc>
                     <HeroButtons>
                         <PrimaryButton onClick={() => router.push('/challenges')}>
