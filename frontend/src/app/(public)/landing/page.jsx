@@ -103,8 +103,8 @@ function Page() {
                         <span style={{ color: "#67e8c3" }}>One Cleanup at a Time</span>
                     </HeroTitle>
                     <HeroDesc>
-                        Every piece of plastic you remove helps protect endangered marine life across Canada's 
-                        <span style={{ color: "#67e8c3", fontWeight: 700 }}> 243,042 km</span> coastline. 
+                        Every piece of plastic you remove helps protect endangered marine life across Canada's
+                        <span style={{ color: "#67e8c3", fontWeight: 700 }}> 243,042 km</span> coastline.
                         Join a movement powered by AI, community, and science to combat ocean pollution that threatens 88 species at risk.
                     </HeroDesc>
                     <HeroButtons>
@@ -184,51 +184,70 @@ function Page() {
                         </Typography>
                     </Box>
 
-                    <Grid container spacing={3} justifyContent="center">
-                        {ecosystemStats.map((stat, index) => (
-                            <Grid item xs={12} sm={6} md={3} key={index} sx={{ display: "flex" }}>
-                                <StatCard elevation={0}>
-                                    <CardContent sx={{ textAlign: "center", width: "100%" }}>
-                                        <Typography
-                                            variant="h3"
-                                            sx={{
-                                                color: stat.color,
-                                                fontWeight: 700,
-                                                mb: 2,
-                                                fontSize: { xs: "2rem", sm: "2.25rem", md: "2.5rem" },
-                                                textAlign: "center"
-                                            }}
-                                        >
-                                            {stat.number}
-                                        </Typography>
-                                        <Typography
-                                            variant="h6"
-                                            sx={{
-                                                color: "#0077b6",
-                                                fontWeight: 600,
-                                                mb: 1,
-                                                fontSize: { xs: "1.125rem", md: "1.25rem" },
-                                                textAlign: "center"
-                                            }}
-                                        >
-                                            {stat.label}
-                                        </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            color="#004b63"
-                                            sx={{
-                                                textAlign: "center",
-                                                lineHeight: 1.5,
-                                                px: 1
-                                            }}
-                                        >
-                                            {stat.desc}
-                                        </Typography>
-                                    </CardContent>
-                                </StatCard>
-                            </Grid>
-                        ))}
-                    </Grid>
+                    <Box sx={{ maxWidth: "1100px", margin: "0 auto", px: 2 }}>
+                        <Grid
+                            container
+                            spacing={3}
+                            sx={{
+                                display: "grid",
+                                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                                gap: 3
+                            }}
+                        >
+                            {ecosystemStats.map((stat, index) => (
+                                <Box key={index} sx={{ display: "flex", height: "100%" }}>
+                                    <StatCard elevation={0}>
+                                        <CardContent>
+                                            <Box sx={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                height: "100%"
+                                            }}>
+                                                <Typography
+                                                    variant="h3"
+                                                    sx={{
+                                                        color: stat.color,
+                                                        fontWeight: 700,
+                                                        mb: 2,
+                                                        fontSize: { xs: "2rem", sm: "2.25rem", md: "2.5rem" },
+                                                        textAlign: "center"
+                                                    }}
+                                                >
+                                                    {stat.number}
+                                                </Typography>
+                                                <Typography
+                                                    variant="h6"
+                                                    sx={{
+                                                        color: "#0077b6",
+                                                        fontWeight: 600,
+                                                        mb: 1.5,
+                                                        fontSize: { xs: "1.125rem", md: "1.25rem" },
+                                                        textAlign: "center"
+                                                    }}
+                                                >
+                                                    {stat.label}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body2"
+                                                    color="#004b63"
+                                                    sx={{
+                                                        textAlign: "center",
+                                                        lineHeight: 1.6,
+                                                        px: 1,
+                                                        fontSize: { xs: "0.875rem", md: "0.9375rem" }
+                                                    }}
+                                                >
+                                                    {stat.desc}
+                                                </Typography>
+                                            </Box>
+                                        </CardContent>
+                                    </StatCard>
+                                </Box>
+                            ))}
+                        </Grid>
+                    </Box>
                 </Container>
             </Section>
 
@@ -238,18 +257,17 @@ function Page() {
                 color: "#fff"
             }}>
                 <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-                    <Grid container spacing={{ xs: 4, md: 8 }} alignItems="stretch" justifyContent="center">
-                        <Grid item xs={12} md={6}>
+                    <Grid container spacing={{ xs: 4, md: 6, lg: 8 }} alignItems="center" justifyContent="center">
+                        <Grid item xs={12} lg={5}>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "column",
                                 height: "100%",
                                 justifyContent: "center",
-                                maxWidth: { md: "600px" },
-                                mx: { md: "0", lg: "auto" },
-                                pr: { md: 2, lg: 4 }
+                                maxWidth: { lg: "550px" },
+                                mx: { lg: "auto" }
                             }}>
-                                 <SectionBadge sx={{
+                                <SectionBadge sx={{
                                     background: "rgba(103, 232, 195, 0.2)",
                                     color: "#67e8c3",
                                     borderColor: "#67e8c3",
@@ -262,7 +280,7 @@ function Page() {
                                     sx={{
                                         fontWeight: 700,
                                         mb: 3,
-                                        fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem", lg: "2.75rem" },
+                                        fontSize: { xs: "1.75rem", sm: "2rem", md: "2.25rem", lg: "2.5rem" },
                                         lineHeight: 1.2
                                     }}
                                 >
@@ -274,12 +292,12 @@ function Page() {
                                         mb: 3,
                                         lineHeight: 1.8,
                                         opacity: 0.95,
-                                        fontSize: { xs: "1rem", md: "1.0625rem", lg: "1.125rem" }
+                                        fontSize: { xs: "1rem", md: "1.0625rem" }
                                     }}
                                 >
                                     Every year, <strong style={{ color: "#67e8c3" }}>8-11 million tons</strong> of
-                                    plastic flood our oceans. In Canada, this debris directly threatens the 
-                                    <strong style={{ color: "#67e8c3" }}> North Atlantic right whale</strong> (approximately 356 remain), 
+                                    plastic flood our oceans. In Canada, this debris directly threatens the
+                                    <strong style={{ color: "#67e8c3" }}> North Atlantic right whale</strong> (approximately 356 remain),
                                     leatherback sea turtles, and 88 other marine species officially listed as at-risk by COSEWIC.
                                 </Typography>
                                 <Typography
@@ -288,11 +306,11 @@ function Page() {
                                         mb: 4,
                                         lineHeight: 1.8,
                                         opacity: 0.95,
-                                        fontSize: { xs: "1rem", md: "1.0625rem", lg: "1.125rem" }
+                                        fontSize: { xs: "1rem", md: "1.0625rem" }
                                     }}
                                 >
                                     Ghost fishing gear accounts for <strong style={{ color: "#67e8c3" }}>10% of all ocean plastic</strong>,
-                                    continuing to trap and kill marine life for decades. Microplastics have infiltrated 
+                                    continuing to trap and kill marine life for decades. Microplastics have infiltrated
                                     the entire food chain, from plankton to the fish on Canadian dinner tables.
                                 </Typography>
                                 <Box sx={{ mt: { xs: 2, md: 0 } }}>
@@ -319,33 +337,32 @@ function Page() {
                                 </Box>
                             </Box>
                         </Grid>
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} lg={7}>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "column",
                                 height: "100%",
                                 justifyContent: "center",
-                                maxWidth: { md: "600px" },
-                                mx: { md: "0", lg: "auto" },
-                                pl: { md: 2, lg: 4 }
+                                maxWidth: { lg: "700px" },
+                                mx: { lg: "auto" }
                             }}>
                                 <Typography
                                     variant="h4"
                                     sx={{
                                         fontWeight: 600,
                                         mb: 4,
-                                        fontSize: { xs: "1.5rem", md: "1.75rem", lg: "2rem" }
+                                        fontSize: { xs: "1.5rem", md: "1.75rem" }
                                     }}
                                 >
                                     Types of Ocean Pollution in Canada
                                 </Typography>
                                 {canadianPollutionData.map((item, index) => (
                                     <Box key={index} sx={{ mb: 3.5 }}>
-                                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5, alignItems: "baseline" }}>
+                                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5, alignItems: "baseline", gap: 2 }}>
                                             <Typography
                                                 variant="body1"
                                                 fontWeight={600}
-                                                sx={{ fontSize: { xs: "1rem", md: "1.0625rem", lg: "1.125rem" } }}
+                                                sx={{ fontSize: { xs: "1rem", md: "1.0625rem" } }}
                                             >
                                                 {item.label}
                                             </Typography>
@@ -353,7 +370,8 @@ function Page() {
                                                 variant="body1"
                                                 sx={{
                                                     fontSize: { xs: "0.9375rem", md: "1rem" },
-                                                    ml: 2
+                                                    fontWeight: 600,
+                                                    flexShrink: 0
                                                 }}
                                             >
                                                 {item.count}
@@ -365,7 +383,7 @@ function Page() {
                                                 color: "rgba(255,255,255,0.8)",
                                                 fontSize: { xs: "0.8125rem", md: "0.875rem" },
                                                 display: "block",
-                                                mb: 1
+                                                mb: 1.25
                                             }}
                                         >
                                             {item.desc}
@@ -419,8 +437,8 @@ function Page() {
                                 mb: 1
                             }}
                         >
-                            Individual actions alone can't solve the ocean plastic crisis - but organized, 
-                            data-driven collective action can. WaveGuard transforms scattered cleanup efforts into 
+                            Individual actions alone can't solve the ocean plastic crisis - but organized,
+                            data-driven collective action can. WaveGuard transforms scattered cleanup efforts into
                             a coordinated movement with measurable impact.
                         </Typography>
                     </Box>
@@ -487,8 +505,8 @@ function Page() {
                                     mb: 3
                                 }}
                             >
-                                WaveGuard exists to bridge the gap between individual concern and collective action. 
-                                We provide the tools, community, and data infrastructure needed to turn beach cleanups 
+                                WaveGuard exists to bridge the gap between individual concern and collective action.
+                                We provide the tools, community, and data infrastructure needed to turn beach cleanups
                                 into a powerful force for environmental change across Canada.
                             </Typography>
                             <Grid container spacing={{ xs: 2, sm: 3 }} justifyContent="center" sx={{ mt: 2 }}>
@@ -562,8 +580,8 @@ function Page() {
                                 px: { xs: 2, sm: 3 }
                             }}
                         >
-                            Every cleanup starts with a single step. Join the movement to protect Canada's oceans, 
-                            beaches, and marine life. Your contribution - no matter how small - creates real, 
+                            Every cleanup starts with a single step. Join the movement to protect Canada's oceans,
+                            beaches, and marine life. Your contribution - no matter how small - creates real,
                             measurable change for our environment.
                         </Typography>
                         <PrimaryButton
