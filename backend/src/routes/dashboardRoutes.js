@@ -1,6 +1,6 @@
 import express from "express";
 import { getDashboardStats } from "../controllers/dashboardController.js";
-import { verifyFirebaseToken } from "../middleware/authMiddleware.js";
+import { verifyAuth } from "../middleware/authMiddleware.js";
 import { ensureUserExists } from "../middleware/userMiddleware.js";
 
 const router = express.Router();
@@ -10,6 +10,6 @@ const router = express.Router();
  * @desc    Get comprehensive dashboard statistics
  * @access  Private
  */
-router.get("/stats", verifyFirebaseToken, ensureUserExists, getDashboardStats);
+router.get("/stats", verifyAuth, ensureUserExists, getDashboardStats);
 
 export default router;

@@ -5,12 +5,12 @@ import {
     getMilestones,
     getAchievementStats 
 } from "../controllers/achievementsController.js";
-import { verifyFirebaseToken } from "../middleware/authMiddleware.js";
+import { verifyAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Apply authentication middleware to all achievement routes
-router.use(verifyFirebaseToken); 
+router.use(verifyAuth); 
 
 // Achievement Endpoints
 router.get("/", getUserAchievements);          // GET /api/achievements

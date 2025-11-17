@@ -1,6 +1,12 @@
 import express from "express";
-// Import the new registerUser function
-import { syncUser, checkEmail, registerUser } from "../controllers/authController.js";
+// Import authentication controllers
+import { 
+    syncUser, 
+    checkEmail, 
+    registerUser, 
+    createSessionCookie, 
+    clearSessionCookie 
+} from "../controllers/authController.js";
 import { authRateLimiter, rateLimiter } from "../middleware/rateLimiter.js";
 const router = express.Router();
 
@@ -10,6 +16,13 @@ router.post("/register", authRateLimiter, registerUser);
 
 // Existing route for syncing user data on login (Google or email)
 router.post("/sync", authRateLimiter, syncUser);
+
+// NEW: Create HttpOnly session cookie (XSS Protection)
+// Called after Firebase login to create secure session
+router.post("/create-session", authRateLimiter, createSessionCookie);
+
+// NEW: Clear session cookie on logout
+router.post("/logout", clearSessionCookie);
 
 // Existing route for checking if an email is already in use
 // Use regular rate limiter (not auth) since this is called on every keystroke

@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { verifyFirebaseToken } from "../middleware/authMiddleware.js";
+import { verifyAuth } from "../middleware/authMiddleware.js";
 import { ensureUserExists } from "../middleware/userMiddleware.js";
 import { uploadCleanupPhoto, logManualCleanup } from "../controllers/cleanupController.js";
 
@@ -30,7 +30,7 @@ const upload = multer({
  */
 router.post(
     "/upload",
-    [verifyFirebaseToken, ensureUserExists, upload.single("image")],
+    [verifyAuth, ensureUserExists, upload.single("image")],
     uploadCleanupPhoto
 );
 
@@ -41,7 +41,7 @@ router.post(
  */
 router.post(
     "/manual",
-    [verifyFirebaseToken, ensureUserExists],
+    [verifyAuth, ensureUserExists],
     logManualCleanup
 );
 

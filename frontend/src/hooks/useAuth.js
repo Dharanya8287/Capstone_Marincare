@@ -38,12 +38,27 @@ export default function useAuth() {
         await setPersistence(auth, browserSessionPersistence);
     };
 
+    // Helper: Create HttpOnly session cookie (XSS Protection)
+    const createSession = async (idToken) => {
+        try {
+            await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/auth/create-session`,
+                { idToken },
+                { withCredentials: true } // Required for cookies
+            );
+        } catch (err) {
+            console.error("Session creation failed:", err);
+            throw new Error("Failed to create secure session. Please try again.");
+        }
+    };
+
     const login = async (email, password) => {
         await ensureSessionPersistence();
         const userCred = await signInWithEmailAndPassword(auth, email, password);
         const idToken = await userCred.user.getIdToken(true);
-        // Sync on login
-        await syncUser(idToken);
+        
+        // Create HttpOnly session cookie (XSS-safe)
+        await createSession(idToken);
     };
 
     /**
@@ -94,13 +109,25 @@ export default function useAuth() {
             const result = await signInWithPopup(auth, provider);
             if (result.user) {
                 const idToken = await result.user.getIdToken(true);
-                // Sync on Google login (this is fine, it acts as an "get or create")
-                await syncUser(idToken);
+                // Create HttpOnly session cookie (XSS-safe)
+                await createSession(idToken);
             }
         }
     };
 
     const logout = async () => {
+        // Clear HttpOnly session cookie on backend
+        try {
+            await axios.post(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
+                {},
+                { withCredentials: true }
+            );
+        } catch (err) {
+            console.error("Backend logout failed:", err);
+        }
+        
+        // Sign out from Firebase
         await signOut(auth);
     };
 
@@ -111,6 +138,18 @@ export default function useAuth() {
     const handleRedirectResult = async () => {
         try {
             const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                const idToken = await result.user.getIdToken(true);
+                // Create HttpOnly session cookie (XSS-safe)
+                await createSession(idToken);
+                return result.user;
+            }
+            return null;
+        } catch (error) {
+            console.error("Error handling redirect result:", error);
+            throw error;
+        }
+    };
             if (result && result.user) {
                 const idToken = await result.user.getIdToken(true);
                 await syncUser(idToken);
