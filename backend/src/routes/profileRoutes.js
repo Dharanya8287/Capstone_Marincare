@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import { getProfile, updateProfile, uploadProfileImage } from "../controllers/profileController.js";
-import { verifyFirebaseToken } from "../middleware/authMiddleware.js";
+import { verifyAuth } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -19,8 +19,9 @@ const upload = multer({
     }
 });
 
-router.get("/", verifyFirebaseToken, getProfile);
-router.patch("/", verifyFirebaseToken, updateProfile);
-router.post("/upload-image", verifyFirebaseToken, upload.single("image"), uploadProfileImage);
+// Use verifyAuth - supports both HttpOnly cookies (XSS-safe) and Bearer tokens (backward compatibility)
+router.get("/", verifyAuth, getProfile);
+router.patch("/", verifyAuth, updateProfile);
+router.post("/upload-image", verifyAuth, upload.single("image"), uploadProfileImage);
 
 export default router;

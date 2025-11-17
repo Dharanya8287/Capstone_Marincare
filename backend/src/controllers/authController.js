@@ -191,3 +191,106 @@ export const syncUser = async (req, res) => {
         res.status(401).json({ success: false, message: "Invalid or expired Firebase token" });
     }
 };
+
+/**
+ * @desc    Create session cookie from Firebase ID token (XSS Protection)
+ * @route   POST /api/auth/create-session
+ * @access  Public (Relies on ID token)
+ */
+export const createSessionCookie = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        if (!idToken || typeof idToken !== "string") {
+            return res.status(400).json({ success: false, message: "Missing Firebase ID token" });
+        }
+
+        // Verify the ID token first
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+        // Set session expiration (14 days)
+        const expiresIn = 60 * 60 * 24 * 14 * 1000; // 14 days in milliseconds
+
+        // Create the session cookie
+        const sessionCookie = await admin.auth().createSessionCookie(idToken, { expiresIn });
+
+        // Set cookie options
+        const options = {
+            maxAge: expiresIn,
+            httpOnly: true,  // Not accessible via JavaScript (XSS protection)
+            secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+            sameSite: 'strict', // CSRF protection
+            path: '/',
+        };
+
+        // Set the cookie
+        res.cookie('session', sessionCookie, options);
+
+        // Sync user to MongoDB
+        let { uid, name, email, picture } = decodedToken;
+
+        // Sanitize inputs
+        if (email) {
+            const emailValidation = validateEmail(email);
+            if (emailValidation.valid) {
+                email = emailValidation.sanitized;
+            }
+        }
+
+        if (name && typeof name === 'string') {
+            name = sanitizeInput(name);
+        }
+
+        // Find or create user
+        let user = await User.findOne({ firebaseUid: uid });
+
+        if (!user) {
+            console.log(`Session: User ${uid} not found in MongoDB. Creating...`);
+            user = await User.create({
+                firebaseUid: uid,
+                name: name || (email ? email.split("@")[0] : "Anonymous"),
+                email,
+                profileImage: picture || "",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Session created successfully",
+            user: {
+                id: user._id,
+                firebaseUid: user.firebaseUid,
+                name: user.name,
+                email: user.email,
+                profileImage: user.profileImage,
+            },
+        });
+    } catch (error) {
+        console.error("Session creation error:", error.message);
+        res.status(401).json({ success: false, message: "Failed to create session. Invalid or expired token." });
+    }
+};
+
+/**
+ * @desc    Clear session cookie (logout)
+ * @route   POST /api/auth/logout
+ * @access  Public
+ */
+export const clearSessionCookie = async (req, res) => {
+    try {
+        // Clear the session cookie
+        res.clearCookie('session', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/',
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully",
+        });
+    } catch (error) {
+        console.error("Logout error:", error.message);
+        res.status(500).json({ success: false, message: "Logout failed" });
+    }
+};

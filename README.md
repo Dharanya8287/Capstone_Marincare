@@ -60,7 +60,8 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 ### 🚀 Deployment
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete deployment guide with strategies and best practices
 
-### 🔒 Security
+### 🔒 Security & Authentication
+- **[AUTHENTICATION.md](./AUTHENTICATION.md)** - ⭐ **Complete authentication system documentation**
 - **[SECURITY_SUMMARY.md](./SECURITY_SUMMARY.md)** - Security implementation and best practices
 
 ### Quick Start
