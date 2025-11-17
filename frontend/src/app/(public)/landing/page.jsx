@@ -32,37 +32,37 @@ function Page() {
             color: "#0077b6"
         },
         {
-            number: "8 Million",
+            number: "8-11 Million",
             label: "Tons of Plastic",
-            desc: "Enter oceans globally every year, threatening marine ecosystems",
+            desc: "Enter oceans globally every year, threatening marine ecosystems worldwide",
             color: "#ff6b6b"
         },
         {
-            number: "15,000+",
+            number: "800+",
             label: "Marine Species",
-            desc: "At risk from ocean plastic pollution in Canadian waters",
+            desc: "Worldwide affected by ocean plastic pollution, including species in Canadian waters",
             color: "#51cf66"
         },
         {
             number: "90%",
             label: "Of Seabirds",
-            desc: "In Canadian waters have ingested microplastics",
+            desc: "Globally have ingested plastic, including species in Canadian waters",
             color: "#ffa500"
         },
     ];
 
     const canadianPollutionData = [
-        { label: "Plastic Bottles", count: "35%", percentage: 90, desc: "Most common debris on Canadian beaches" },
-        { label: "Fishing Gear (Ghost Nets)", count: "25%", percentage: 65, desc: "Deadly to marine mammals and turtles" },
-        { label: "Microplastics", count: "1 Trillion+", percentage: 85, desc: "Particles found in Canadian ocean waters" },
-        { label: "Cigarette Butts", count: "20%", percentage: 58, desc: "Toxic to fish and marine organisms" },
+        { label: "Cigarette Butts", count: "19%", percentage: 85, desc: "Most common item in Canadian beach cleanups (Great Canadian Shoreline Cleanup)" },
+        { label: "Plastic Bottles & Caps", count: "15-18%", percentage: 75, desc: "Common debris on Canadian beaches and coastlines" },
+        { label: "Fishing Gear (Ghost Nets)", count: "10%", percentage: 65, desc: "Of all ocean plastic globally - deadly to marine mammals and turtles" },
+        { label: "Food Wrappers", count: "12%", percentage: 60, desc: "Frequently found in Canadian coastal cleanup efforts" },
     ];
 
     const whyWaveGuard = [
         {
             emoji: "🌊",
             title: "Combat Marine Pollution",
-            desc: "Join the fight against ocean plastic that's choking Canada's coastlines and threatening 700+ marine species.",
+            desc: "Join the fight against ocean plastic that's choking Canada's coastlines and threatening over 800 marine species globally.",
         },
         {
             emoji: "🐋",
@@ -105,7 +105,7 @@ function Page() {
                     <HeroDesc>
                         Every piece of plastic you remove helps protect endangered marine life across Canada's 
                         <span style={{ color: "#67e8c3", fontWeight: 700 }}> 243,042 km</span> coastline. 
-                        Join a movement powered by AI, community, and science to combat ocean pollution.
+                        Join a movement powered by AI, community, and science to combat ocean pollution that threatens 88 species at risk.
                     </HeroDesc>
                     <HeroButtons>
                         <PrimaryButton onClick={() => router.push('/signup')}>
@@ -119,10 +119,10 @@ function Page() {
                     <StatsBox>
                         <Box sx={{ textAlign: "center" }}>
                             <Typography variant="h4" sx={{ color: "#fff", fontWeight: 700, mb: 0.5 }}>
-                                700+
+                                88
                             </Typography>
                             <Typography sx={{ color: "#d0eaf0", fontSize: { xs: "0.875rem", sm: "1rem" } }}>
-                                Threatened Marine Species
+                                Marine Species at Risk (COSEWIC)
                             </Typography>
                         </Box>
                         <Box sx={{ textAlign: "center" }}>
@@ -135,10 +135,10 @@ function Page() {
                         </Box>
                         <Box sx={{ textAlign: "center" }}>
                             <Typography variant="h4" sx={{ color: "#fff", fontWeight: 700, mb: 0.5 }}>
-                                10 Provinces
+                                ~356
                             </Typography>
                             <Typography sx={{ color: "#d0eaf0", fontSize: { xs: "0.875rem", sm: "1rem" } }}>
-                                Coast to Coast Coverage
+                                N. Atlantic Right Whales Remaining
                             </Typography>
                         </Box>
                     </StatsBox>
@@ -277,10 +277,10 @@ function Page() {
                                         fontSize: { xs: "1rem", md: "1.0625rem", lg: "1.125rem" }
                                     }}
                                 >
-                                    Every year, <strong style={{ color: "#67e8c3" }}>8 million tons</strong> of
+                                    Every year, <strong style={{ color: "#67e8c3" }}>8-11 million tons</strong> of
                                     plastic flood our oceans. In Canada, this debris directly threatens the 
-                                    <strong style={{ color: "#67e8c3" }}> North Atlantic right whale</strong> (fewer than 350 remain), 
-                                    leatherback sea turtles, and hundreds of other species critical to our marine ecosystems.
+                                    <strong style={{ color: "#67e8c3" }}> North Atlantic right whale</strong> (approximately 356 remain), 
+                                    leatherback sea turtles, and 88 other marine species officially listed as at-risk by COSEWIC.
                                 </Typography>
                                 <Typography
                                     variant="body1"
