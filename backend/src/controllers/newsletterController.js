@@ -1,7 +1,38 @@
 import Newsletter from "../models/Newsletter.js";
 
+// Simple in-memory rate limiter for newsletter subscriptions
+const subscriptionAttempts = new Map();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const MAX_ATTEMPTS = 3; // 3 attempts per minute per IP
+
+const checkRateLimit = (ip) => {
+    const now = Date.now();
+    const attempts = subscriptionAttempts.get(ip) || [];
+    
+    // Remove old attempts outside the window
+    const recentAttempts = attempts.filter(time => now - time < RATE_LIMIT_WINDOW);
+    
+    if (recentAttempts.length >= MAX_ATTEMPTS) {
+        return false; // Rate limit exceeded
+    }
+    
+    // Add current attempt
+    recentAttempts.push(now);
+    subscriptionAttempts.set(ip, recentAttempts);
+    
+    return true; // Within rate limit
+};
+
 export const subscribeToNewsletter = async (req, res) => {
     try {
+        // Rate limiting check
+        const ip = req.ip || req.connection.remoteAddress;
+        if (!checkRateLimit(ip)) {
+            return res.status(429).json({ 
+                message: "Too many subscription attempts. Please try again in a minute." 
+            });
+        }
+
         const { email } = req.body;
 
         if (!email || !email.includes("@")) {
