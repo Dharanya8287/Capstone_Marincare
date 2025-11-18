@@ -31,7 +31,7 @@ import {
 
 function HomePage() {
     const router = useRouter();
-    const { user: authUser } = useAuthContext(); // Get Firebase auth user
+    const { user: authUser, authVersion } = useAuthContext(); // Get Firebase auth user and version
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState({
         totalItemsCollected: 0,
@@ -63,10 +63,14 @@ function HomePage() {
         };
 
         // Only fetch if we have an authenticated user
-        if (authUser) {
+        if (authUser?.uid) {
             fetchUserProfile();
+        } else {
+            // Clear user data if no auth user
+            setUser(null);
+            setUserLoading(false);
         }
-    }, [authUser]); // Re-fetch when authUser changes
+    }, [authUser?.uid, authVersion]); // Re-fetch when auth user UID or version changes
 
     useEffect(() => {
         const fetchStats = async () => {
