@@ -150,17 +150,6 @@ export default function useAuth() {
             throw error;
         }
     };
-            if (result && result.user) {
-                const idToken = await result.user.getIdToken(true);
-                await syncUser(idToken);
-                return result.user;
-            }
-            return null;
-        } catch (error) {
-            console.error("Error handling redirect result:", error);
-            throw error;
-        }
-    };
 
     return { login, signup, googleLogin, logout, handleRedirectResult };
 }
