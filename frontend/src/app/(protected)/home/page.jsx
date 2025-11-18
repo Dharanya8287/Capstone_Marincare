@@ -125,7 +125,7 @@ function HomePage() {
                             </>
                         ) : isFirstTimeUser ? (
                             <>
-                                {greeting}, {firstName}! 👋<br />
+                                {greeting}, {firstName}! <br />
                                 <span style={{ color: "#67e8c3" }}>Welcome to WaveGuard</span>
                             </>
                         ) : (
