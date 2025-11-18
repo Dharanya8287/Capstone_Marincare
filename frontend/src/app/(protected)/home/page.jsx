@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import withAuth from '@/components/auth/withAuth';
+import { useAuthContext } from '@/context/AuthContext';
 import { Box, Typography, Grid, Card, CircularProgress } from "@mui/material";
 import { apiCall } from "@/utils/api";
 
@@ -30,6 +31,7 @@ import {
 
 function HomePage() {
     const router = useRouter();
+    const { user: authUser } = useAuthContext(); // Get Firebase auth user
     const [user, setUser] = useState(null);
     const [stats, setStats] = useState({
         totalItemsCollected: 0,
@@ -41,9 +43,13 @@ function HomePage() {
     const [loading, setLoading] = useState(true);
     const [userLoading, setUserLoading] = useState(true);
 
-    // Fetch user profile
+    // Fetch user profile - re-runs when authenticated user changes
     useEffect(() => {
         const fetchUserProfile = async () => {
+            // Reset user state when starting fetch
+            setUserLoading(true);
+            setUser(null);
+            
             try {
                 const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/profile`);
                 if (response?.data) {
@@ -56,8 +62,11 @@ function HomePage() {
             }
         };
 
-        fetchUserProfile();
-    }, []);
+        // Only fetch if we have an authenticated user
+        if (authUser) {
+            fetchUserProfile();
+        }
+    }, [authUser]); // Re-fetch when authUser changes
 
     useEffect(() => {
         const fetchStats = async () => {
