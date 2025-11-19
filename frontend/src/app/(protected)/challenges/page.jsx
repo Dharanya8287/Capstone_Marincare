@@ -39,7 +39,7 @@ function ChallengesPage() {
     const [challenges, setChallenges] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
-    const { joinedChallenges } = useJoinedChallenges();
+    const { joinedChallenges, loading: contextLoading } = useJoinedChallenges();
     const [selectedRegion, setSelectedRegion] = useState("All");
     const [selectedStatus, setSelectedStatus] = useState("All");
 
@@ -99,13 +99,6 @@ function ChallengesPage() {
     useEffect(() => {
         fetchData();
     }, []);
-
-    // Refresh challenges when user joins/leaves a challenge
-    useEffect(() => {
-        if (joinedChallenges.length >= 0) {
-            fetchData();
-        }
-    }, [joinedChallenges]);
 
     // Safer filter logic
     const filterChallenges = (challengeList) => {
@@ -232,7 +225,7 @@ function ChallengesPage() {
                     </Typography>
                 </Box>
 
-                {loading ? (
+                {loading || contextLoading ? (
                     <Box
                         sx={{
                             display: "flex",
