@@ -35,12 +35,22 @@ export const subscribeToNewsletter = async (req, res) => {
 
         const { email } = req.body;
 
-        if (!email || !email.includes("@")) {
+        // Better email validation
+        if (!email || typeof email !== 'string') {
             return res.status(400).json({ message: "Valid email is required" });
         }
 
+        const trimmedEmail = email.trim().toLowerCase();
+        
+        // Email regex validation
+        const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        
+        if (!emailRegex.test(trimmedEmail) || trimmedEmail.length > 254) {
+            return res.status(400).json({ message: "Please provide a valid email address" });
+        }
+
         // Check if email already exists
-        const existing = await Newsletter.findOne({ email: email.toLowerCase() });
+        const existing = await Newsletter.findOne({ email: trimmedEmail });
         
         if (existing) {
             if (existing.subscribed) {
@@ -60,7 +70,7 @@ export const subscribeToNewsletter = async (req, res) => {
 
         // Create new subscription
         const subscription = new Newsletter({ 
-            email: email.toLowerCase(),
+            email: trimmedEmail,
             subscribed: true,
             subscribedAt: new Date()
         });
