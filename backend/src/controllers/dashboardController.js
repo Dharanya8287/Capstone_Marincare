@@ -3,6 +3,21 @@ import Cleanup from "../models/Cleanup.js";
 import Challenge from "../models/Challenge.js";
 import mongoose from "mongoose";
 
+// Helper function to determine challenge status based on dates
+const getChallengeStatus = (startDate, endDate) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    if (now < start) {
+        return 'upcoming';
+    } else if (now >= start && now <= end) {
+        return 'active';
+    } else {
+        return 'completed';
+    }
+};
+
 // Category display mapping - matches frontend and challenge details
 const CATEGORY_COLORS = {
     plastic_bottle: "#3b82f6",
@@ -225,7 +240,7 @@ async function getRecentActivity(userId, limit = 5) {
         .populate("challengeId", "title locationName")
         .lean();
 
-    // Format for frontend
+    // Format for frontend with null safety
     const formatted = recentCleanups.map((cleanup) => ({
         location: cleanup.challengeId?.locationName || cleanup.challengeId?.title || "Unknown Location",
         date: new Date(cleanup.createdAt).toLocaleDateString("en-US", {
@@ -233,9 +248,9 @@ async function getRecentActivity(userId, limit = 5) {
             day: "numeric",
             year: "numeric",
         }),
-        items: cleanup.itemCount,
-        challengeTitle: cleanup.challengeId?.title,
-        category: cleanup.classificationResult?.label,
+        items: cleanup.itemCount || 0,
+        challengeTitle: cleanup.challengeId?.title || "Unknown Challenge",
+        category: cleanup.classificationResult?.label || "unknown",
     }));
 
     return formatted;
@@ -310,15 +325,33 @@ async function getTopContributors(limit = 10) {
 
     return formatted;
 }
+/**
+ * Get challenge participation summary
+ */
 async function getChallengeParticipation(userId) {
-    const user = await User.findById(userId).populate("joinedChallenges", "title status");
+    const user = await User.findById(userId).populate("joinedChallenges", "title status startDate endDate");
 
-    const active = user.joinedChallenges.filter((c) => c.status === "active").length;
-    const completed = user.joinedChallenges.filter((c) => c.status === "completed").length;
-    const upcoming = user.joinedChallenges.filter((c) => c.status === "upcoming").length;
+    if (!user || !user.joinedChallenges) {
+        return {
+            total: 0,
+            active: 0,
+            completed: 0,
+            upcoming: 0,
+        };
+    }
+
+    // Update statuses based on current date
+    const challengesWithStatus = user.joinedChallenges.map(challenge => ({
+        ...challenge.toObject(),
+        status: getChallengeStatus(challenge.startDate, challenge.endDate)
+    }));
+
+    const active = challengesWithStatus.filter((c) => c.status === "active").length;
+    const completed = challengesWithStatus.filter((c) => c.status === "completed").length;
+    const upcoming = challengesWithStatus.filter((c) => c.status === "upcoming").length;
 
     return {
-        total: user.joinedChallenges.length,
+        total: challengesWithStatus.length,
         active,
         completed,
         upcoming,

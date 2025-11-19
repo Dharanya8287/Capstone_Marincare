@@ -72,18 +72,13 @@ export async function classifyImage(buffer) {
     if (!classifier) {
         throw new Error("AI model is not available. Please use manual entry or try again later.");
     }
+    
     if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
         throw new Error("Invalid image buffer");
     }
 
-    // Check if it's ready.
-    if (!classifier) {
-        console.error("AI Model not initialized. Please restart the server.");
-        throw new Error("AI classifier is not ready.");
-    }
-
-    // Create a temporary file path
-    const tempFilePath = join(tmpdir(), `temp-image-${Date.now()}.jpg`);
+    // Create a temporary file path with better error handling
+    const tempFilePath = join(tmpdir(), `waveguard-temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`);
 
     try {
         // Write buffer to temporary file
@@ -105,13 +100,14 @@ export async function classifyImage(buffer) {
         };
     } catch (error) {
         console.error("Error during AI classification:", error);
-        throw new Error("Failed to classify image.");
+        throw new Error("Failed to classify image. Please try manual entry.");
     } finally {
         // Clean up: delete the temporary file
         try {
             unlinkSync(tempFilePath);
         } catch (err) {
-            console.warn("Failed to delete temp file:", err.message);
+            // Only warn, don't throw - the classification might have succeeded
+            console.warn(`Failed to delete temp file ${tempFilePath}:`, err.message);
         }
     }
 }
