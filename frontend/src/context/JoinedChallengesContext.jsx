@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { apiCall } from "@/utils/api";
 import { useAuthContext } from "./AuthContext";
 
@@ -11,10 +11,11 @@ export const JoinedChallengesProvider = ({ children }) => {
     const [joinedChallenges, setJoinedChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user, isAuthenticated } = useAuthContext();
+    const userUid = user?.uid;
 
     // Fetch joined challenges from backend on mount
-    const fetchJoinedChallenges = async () => {
-        if (!isAuthenticated || !user) {
+    const fetchJoinedChallenges = useCallback(async () => {
+        if (!isAuthenticated || !userUid) {
             setJoinedChallenges([]);
             setLoading(false);
             return;
@@ -30,12 +31,12 @@ export const JoinedChallengesProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [isAuthenticated, userUid]);
 
     // Fetch on mount and when auth status changes
     useEffect(() => {
         fetchJoinedChallenges();
-    }, [isAuthenticated, user]);
+    }, [fetchJoinedChallenges]);
 
     const joinChallenge = async (challengeId, location = null) => {
         try {
