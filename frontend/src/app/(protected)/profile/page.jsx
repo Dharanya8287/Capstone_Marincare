@@ -211,17 +211,23 @@ const ProfilePage = () => {
 
     const handleSignOut = async () => {
         try {
-            // Clear all local storage and state before signing out
-            localStorage.clear();
-            sessionStorage.clear();
+            // Clear user-specific storage keys before signing out
+            const keysToRemove = ['user', 'token', 'authToken', 'userProfile', 'userData'];
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
             
             await signOut(auth);
             router.push('/landing');
         } catch (error) {
             console.error('Error signing out:', error);
             // Even if signout fails, clear storage and redirect
-            localStorage.clear();
-            sessionStorage.clear();
+            const keysToRemove = ['user', 'token', 'authToken', 'userProfile', 'userData'];
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
             router.push('/landing');
         }
     };
@@ -337,7 +343,12 @@ const ProfilePage = () => {
 
     const getAchievementIcon = (iconString) => {
         // If it's an emoji string, display it directly
-        if (iconString && /\p{Emoji}/u.test(iconString)) {
+        // Use a simple check for common emoji ranges instead of Unicode property escape
+        if (iconString && (
+            /[\u{1F300}-\u{1F9FF}]/u.test(iconString) || // Emoticons and symbols
+            /[\u{2600}-\u{26FF}]/u.test(iconString) ||   // Miscellaneous symbols
+            /[\u{2700}-\u{27BF}]/u.test(iconString)      // Dingbats
+        )) {
             return <Typography sx={{ fontSize: '32px' }}>{iconString}</Typography>;
         }
         

@@ -159,7 +159,7 @@ function ChallengeDetailsPage({ params }) {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             window.removeEventListener('focus', throttledRefresh);
         };
-    }, [id, lastRefreshTime]);
+    }, [id]); // Removed lastRefreshTime from dependencies
 
     const joined = challenge ? isJoined(challenge._id) : false;
 
