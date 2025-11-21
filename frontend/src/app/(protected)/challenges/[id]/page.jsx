@@ -46,6 +46,7 @@ function ChallengeDetailsPage({ params }) {
     const [uploading, setUploading] = useState(false);
     const [userTrashCollected, setUserTrashCollected] = useState(245);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const [lastRefreshTime, setLastRefreshTime] = useState(0);
 
     // Trash categories mapping - matches backend predefined categories
     const getCategoryDisplay = (key, count) => {
@@ -115,6 +116,17 @@ function ChallengeDetailsPage({ params }) {
         }
     };
 
+    // Throttled refresh to prevent excessive API calls
+    const throttledRefresh = () => {
+        const now = Date.now();
+        const THROTTLE_MS = 3000; // Minimum 3 seconds between refreshes
+        
+        if (now - lastRefreshTime >= THROTTLE_MS) {
+            setLastRefreshTime(now);
+            refreshChallengeData();
+        }
+    };
+
     // Initial fetch
     useEffect(() => {
         fetchChallenge(true);
@@ -133,21 +145,21 @@ function ChallengeDetailsPage({ params }) {
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (!document.hidden) {
-                // Page is now visible, refresh challenge data
-                refreshChallengeData();
+                // Page is now visible, refresh challenge data (throttled)
+                throttledRefresh();
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
         
-        // Also refresh on window focus (for better UX)
-        window.addEventListener('focus', refreshChallengeData);
+        // Also refresh on window focus (for better UX, throttled)
+        window.addEventListener('focus', throttledRefresh);
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('focus', refreshChallengeData);
+            window.removeEventListener('focus', throttledRefresh);
         };
-    }, [id]);
+    }, [id, lastRefreshTime]);
 
     const joined = challenge ? isJoined(challenge._id) : false;
 

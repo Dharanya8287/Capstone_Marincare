@@ -127,13 +127,32 @@ const ProfilePage = () => {
                 setHasAchievements(res.data.hasAchievements);
                 if (res.data.achievements && res.data.achievements.length > 0) {
                     // Format achievements for display
-                    const formattedAchievements = res.data.achievements.map(achievement => ({
-                        name: achievement.name,
-                        date: new Date(achievement.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-                        rarity: achievement.rarity,
-                        color: achievement.color,
-                        icon: achievement.icon,
-                    }));
+                    const formattedAchievements = res.data.achievements.map(achievement => {
+                        // Validate and format date
+                        let formattedDate = 'Recently';
+                        if (achievement.date) {
+                            try {
+                                const date = new Date(achievement.date);
+                                if (!isNaN(date.getTime())) {
+                                    formattedDate = date.toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric', 
+                                        year: 'numeric' 
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error formatting achievement date:', error);
+                            }
+                        }
+                        
+                        return {
+                            name: achievement.name,
+                            date: formattedDate,
+                            rarity: achievement.rarity,
+                            color: achievement.color,
+                            icon: achievement.icon,
+                        };
+                    });
                     setAchievements(formattedAchievements);
                 } else {
                     setAchievements([]);
