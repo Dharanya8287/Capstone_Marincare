@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { apiCall } from "@/utils/api";
+import { apiCall, requestCache } from "@/utils/api";
 import { useAuthContext } from "./AuthContext";
 
 // Create context
@@ -26,7 +26,11 @@ export const JoinedChallengesProvider = ({ children }) => {
             const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/joined`);
             setJoinedChallenges(response.data || []);
         } catch (error) {
-            console.error('Error fetching joined challenges:', error);
+            if (error.isRateLimitError) {
+                console.warn('Rate limit reached when fetching joined challenges:', error.message);
+            } else {
+                console.error('Error fetching joined challenges:', error);
+            }
             setJoinedChallenges([]);
         } finally {
             setLoading(false);
@@ -47,6 +51,9 @@ export const JoinedChallengesProvider = ({ children }) => {
                 requestBody
             );
             
+            // Invalidate joined challenges cache before refetching
+            requestCache.invalidatePattern('/api/challenges/joined');
+            
             // Refresh the list after joining
             await fetchJoinedChallenges();
             
@@ -60,6 +67,9 @@ export const JoinedChallengesProvider = ({ children }) => {
     const leaveChallenge = async (challengeId) => {
         try {
             const response = await apiCall('post', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/leave`);
+            
+            // Invalidate joined challenges cache before refetching
+            requestCache.invalidatePattern('/api/challenges/joined');
             
             // Refresh the list after leaving
             await fetchJoinedChallenges();
