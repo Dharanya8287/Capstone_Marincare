@@ -85,7 +85,7 @@ export async function apiCall(method, url, data = {}, forceRefresh = false, retr
 
                 // Calculate exponential backoff delay
                 const delay = Math.min(initialDelay * Math.pow(2, attempt), maxDelay);
-                console.warn(`Rate limit hit (429). Retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+                console.warn(`Rate limit hit (429). Retrying in ${delay}ms... (attempt ${attempt + 1} of ${maxRetries + 1})`);
                 await wait(delay);
                 continue;
             }

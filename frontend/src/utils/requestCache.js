@@ -91,6 +91,28 @@ class RequestCache {
 export const requestCache = new RequestCache();
 
 // Cleanup expired entries every 5 minutes
+// Store interval ID so it can be cleared if needed
+let cleanupIntervalId;
+
 if (typeof window !== 'undefined') {
-    setInterval(() => requestCache.cleanup(), 5 * 60 * 1000);
+    cleanupIntervalId = setInterval(() => requestCache.cleanup(), 5 * 60 * 1000);
+    
+    // Clear interval on page unload to prevent memory leaks
+    if (typeof window.addEventListener === 'function') {
+        window.addEventListener('beforeunload', () => {
+            if (cleanupIntervalId) {
+                clearInterval(cleanupIntervalId);
+            }
+        });
+    }
 }
+
+/**
+ * Stop the cleanup interval (useful for cleanup in tests or when module is unloaded)
+ */
+export const stopCleanupInterval = () => {
+    if (cleanupIntervalId) {
+        clearInterval(cleanupIntervalId);
+        cleanupIntervalId = null;
+    }
+};
