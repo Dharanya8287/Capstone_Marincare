@@ -36,14 +36,17 @@ const getClientIdentifier = (req) => {
 
 /**
  * Clean up old entries periodically
+ * Returns number of entries cleaned up for monitoring
  */
-setInterval(() => {
+const cleanupOldEntries = () => {
     const now = Date.now();
+    let cleanedCount = 0;
     
     // Clean up request counts
     for (const [key, data] of requestCounts.entries()) {
         if (now - data.startTime > CONFIG.WINDOW_MS) {
             requestCounts.delete(key);
+            cleanedCount++;
         }
     }
     
@@ -51,9 +54,30 @@ setInterval(() => {
     for (const [key, blockTime] of blockedIPs.entries()) {
         if (now - blockTime > CONFIG.BLOCK_DURATION_MS) {
             blockedIPs.delete(key);
+            cleanedCount++;
         }
     }
-}, CONFIG.CLEANUP_INTERVAL_MS);
+    
+    // Only log if we actually cleaned something (reduce console noise)
+    if (cleanedCount > 0) {
+        console.log(`[RateLimiter] Cleaned up ${cleanedCount} expired entries`);
+    }
+    
+    return cleanedCount;
+};
+
+/**
+ * Start cleanup interval - can be stopped if needed
+ */
+const cleanupInterval = setInterval(cleanupOldEntries, CONFIG.CLEANUP_INTERVAL_MS);
+
+/**
+ * Export cleanup function for graceful shutdown
+ */
+export const stopRateLimiterCleanup = () => {
+    clearInterval(cleanupInterval);
+    console.log('[RateLimiter] Cleanup interval stopped');
+};
 
 /**
  * Create rate limiter with custom limits

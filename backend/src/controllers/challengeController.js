@@ -135,13 +135,7 @@ export const joinChallenge = async (req, res) => {
             return res.status(400).json({ message: "Cannot join a completed challenge" });
         }
 
-        // Check if user already joined
-        const user = await User.findById(userId);
-        if (user.joinedChallenges.includes(id)) {
-            return res.status(400).json({ message: "Already joined this challenge" });
-        }
-
-        // Location verification
+        // Location verification (before checking if already joined)
         if (isLocationVerificationEnabled() && !shouldBypassLocationCheck(userEmail)) {
             if (!location || typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
                 return res.status(400).json({ 
@@ -165,11 +159,23 @@ export const joinChallenge = async (req, res) => {
             console.log(`[Location] User ${userEmail} verified for challenge ${id}: ${validation.message}`);
         }
 
-        // Add challenge to user's joined challenges and increment totalChallenges
-        await User.findByIdAndUpdate(userId, {
-            $addToSet: { joinedChallenges: id },
-            $inc: { totalChallenges: 1 }
-        });
+        // Use atomic operation to check and add in one step (prevents race condition)
+        const userUpdateResult = await User.findOneAndUpdate(
+            { 
+                _id: userId,
+                joinedChallenges: { $ne: id } // Only update if not already joined
+            },
+            {
+                $addToSet: { joinedChallenges: id },
+                $inc: { totalChallenges: 1 }
+            },
+            { new: true }
+        );
+
+        // If no document was modified, user already joined
+        if (!userUpdateResult) {
+            return res.status(400).json({ message: "Already joined this challenge" });
+        }
 
         // Increment challenge volunteer count
         const updatedChallenge = await Challenge.findByIdAndUpdate(
@@ -209,27 +215,36 @@ export const leaveChallenge = async (req, res) => {
             return res.status(404).json({ message: "Challenge not found" });
         }
 
-        // Check if user has joined
-        const user = await User.findById(userId);
-        if (!user.joinedChallenges.includes(id)) {
+        // Use atomic operation to check and remove in one step (prevents race condition)
+        const userUpdateResult = await User.findOneAndUpdate(
+            { 
+                _id: userId,
+                joinedChallenges: id // Only update if challenge is in the array
+            },
+            {
+                $pull: { joinedChallenges: id },
+                $inc: { totalChallenges: -1 }
+            },
+            { new: true }
+        );
+
+        // If no document was modified, user hasn't joined
+        if (!userUpdateResult) {
             return res.status(400).json({ message: "You haven't joined this challenge" });
         }
 
-        // Remove challenge from user's joined challenges and decrement totalChallenges
-        await User.findByIdAndUpdate(userId, {
-            $pull: { joinedChallenges: id },
-            $inc: { totalChallenges: -1 }
-        });
-
-        // Decrement challenge volunteer count (ensure it doesn't go below 0)
-        const currentChallenge = await Challenge.findById(id);
-        const newVolunteerCount = Math.max(0, currentChallenge.totalVolunteers - 1);
-        
+        // Decrement challenge volunteer count atomically (ensure it doesn't go below 0)
         const updatedChallenge = await Challenge.findByIdAndUpdate(
             id,
-            { totalVolunteers: newVolunteerCount },
+            { $inc: { totalVolunteers: -1 } },
             { new: true }
         );
+
+        // Ensure volunteer count doesn't go negative (safety check)
+        if (updatedChallenge.totalVolunteers < 0) {
+            await Challenge.findByIdAndUpdate(id, { totalVolunteers: 0 });
+            updatedChallenge.totalVolunteers = 0;
+        }
 
         res.json({
             message: "Left successfully",

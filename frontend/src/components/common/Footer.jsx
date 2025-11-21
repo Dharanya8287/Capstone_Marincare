@@ -1,6 +1,9 @@
 "use client";
+import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { styled } from "@mui/material/styles";
+import { Snackbar, Alert } from "@mui/material";
 
 /* Styled Components */
 const FooterContainer = styled("footer")(() => ({
@@ -143,14 +146,14 @@ const NewsletterHint = styled("span")(() => ({
 
 const LinksSection = styled("div")(() => ({
     display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    gap: "50px",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "60px",
     "@media (max-width: 1200px)": {
-        gap: "40px",
+        gap: "50px",
     },
     "@media (max-width: 1024px)": {
-        gridTemplateColumns: "repeat(4, 1fr)",
-        gap: "30px",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "40px",
     },
     "@media (max-width: 768px)": {
         gridTemplateColumns: "repeat(2, 1fr)",
@@ -286,22 +289,79 @@ const ContactValue = styled("p")(() => ({
 
 /* Component */
 export default function Footer() {
+    const router = useRouter();
+    const [email, setEmail] = useState("");
+    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleNewsletterSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!email || !email.includes("@")) {
+            setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
+            return;
+        }
+
+        setIsSubmitting(true);
+        
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/newsletter/subscribe`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSnackbar({ open: true, message: "Successfully subscribed to our newsletter! 🎉", severity: "success" });
+                setEmail("");
+            } else {
+                setSnackbar({ open: true, message: data.message || "Subscription failed. Please try again.", severity: "error" });
+            }
+        } catch (error) {
+            console.error("Newsletter subscription error:", error);
+            setSnackbar({ open: true, message: "Network error. Please try again later.", severity: "error" });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
+    const navigationLinks = {
+        platform: [
+            { label: "Challenges", path: "/challenges" },
+            { label: "Upload Cleanup", path: "/upload" },
+            { label: "Dashboard", path: "/dashboard" },
+            { label: "Achievements", path: "/achievements" },
+        ],
+        resources: [
+            { label: "How It Works", path: "/home" },
+            { label: "AI Detection", path: "/upload" },
+            { label: "Impact Reports", path: "/dashboard" },
+        ],
+        company: [
+            { label: "About Us", path: "#" },
+            { label: "Our Mission", path: "#" },
+            { label: "Contact", path: "#" },
+        ],
+    };
+
     const linkGroups = [
         {
             title: "Platform",
-            items: ["Challenges", "Upload Cleanup", "Dashboard", "Achievements"],
+            items: navigationLinks.platform,
         },
         {
             title: "Resources",
-            items: ["How It Works", "AI Detection", "Impact Reports"],
+            items: navigationLinks.resources,
         },
         {
             title: "Company",
-            items: ["About Us", "Our Mission", "Contact"],
-        },
-        {
-            title: "Legal",
-            items: ["Privacy Policy", "Terms of Service", "Cookie Policy", "Accessibility"],
+            items: navigationLinks.company,
         },
     ];
 
@@ -331,14 +391,21 @@ export default function Footer() {
                     <NewsletterSection>
                         <NewsletterTitle>Subscribe to our newsletter</NewsletterTitle>
 
-                        <NewsletterForm>
+                        <NewsletterForm as="form" onSubmit={handleNewsletterSubmit}>
                             <EmailInput
                                 type="email"
                                 placeholder="your@email.com"
                                 aria-label="Email address"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={isSubmitting}
                             />
-                            <SubmitButton aria-label="Subscribe">
-                                →
+                            <SubmitButton 
+                                type="submit" 
+                                aria-label="Subscribe"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "..." : "→"}
                             </SubmitButton>
                         </NewsletterForm>
                         <NewsletterHint>
@@ -354,7 +421,20 @@ export default function Footer() {
                             <ColumnTitle>{group.title}</ColumnTitle>
                             <LinkList>
                                 {group.items.map((item) => (
-                                    <LinkItem key={item}>{item}</LinkItem>
+                                    <LinkItem 
+                                        key={item.label}
+                                        onClick={() => {
+                                            if (item.path !== "#") {
+                                                router.push(item.path);
+                                            }
+                                        }}
+                                        style={{ 
+                                            cursor: item.path === "#" ? "default" : "pointer",
+                                            opacity: item.path === "#" ? 0.6 : 1
+                                        }}
+                                    >
+                                        {item.label}
+                                    </LinkItem>
                                 ))}
                             </LinkList>
                         </LinkColumn>
@@ -409,6 +489,22 @@ export default function Footer() {
                     </ContactInfo>
                 </ContactCard>
             </ContactArea>
+
+            {/* Snackbar for success/error messages */}
+            <Snackbar 
+                open={snackbar.open} 
+                autoHideDuration={4000} 
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert 
+                    onClose={handleCloseSnackbar} 
+                    severity={snackbar.severity}
+                    sx={{ width: '100%' }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </FooterContainer>
     );
 }

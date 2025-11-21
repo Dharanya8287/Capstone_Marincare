@@ -23,6 +23,7 @@ async function syncUser(idToken, retries = 2) {
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [authVersion, setAuthVersion] = useState(0); // Track auth state changes
 
     useEffect(() => {
         // Check for redirect result first (for mobile Google sign-in)
@@ -33,6 +34,7 @@ export function AuthProvider({ children }) {
                     // User signed in via redirect, sync with backend
                     const idToken = await result.user.getIdToken(true);
                     await syncUser(idToken);
+                    setAuthVersion(prev => prev + 1); // Increment version on auth change
                 }
             } catch (error) {
                 console.error("Error handling redirect result:", error);
@@ -46,6 +48,7 @@ export function AuthProvider({ children }) {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser);
             setLoading(false);
+            setAuthVersion(prev => prev + 1); // Increment version on every auth state change
         });
 
         // Cleanup the listener when the component unmounts
@@ -56,6 +59,7 @@ export function AuthProvider({ children }) {
         user,
         isAuthenticated: !!user,
         loading,
+        authVersion, // Expose version for components that need to react to auth changes
     };
 
     if (loading) {

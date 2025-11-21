@@ -1,6 +1,6 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { apiCall } from "@/utils/api";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { apiCall, requestCache } from "@/utils/api";
 import { useAuthContext } from "./AuthContext";
 
 // Create context
@@ -11,10 +11,11 @@ export const JoinedChallengesProvider = ({ children }) => {
     const [joinedChallenges, setJoinedChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user, isAuthenticated } = useAuthContext();
+    const userUid = user?.uid;
 
     // Fetch joined challenges from backend on mount
-    const fetchJoinedChallenges = async () => {
-        if (!isAuthenticated || !user) {
+    const fetchJoinedChallenges = useCallback(async () => {
+        if (!isAuthenticated || !userUid) {
             setJoinedChallenges([]);
             setLoading(false);
             return;
@@ -25,17 +26,21 @@ export const JoinedChallengesProvider = ({ children }) => {
             const response = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/joined`);
             setJoinedChallenges(response.data || []);
         } catch (error) {
-            console.error('Error fetching joined challenges:', error);
+            if (error.isRateLimitError) {
+                console.warn('Rate limit reached when fetching joined challenges:', error.message);
+            } else {
+                console.error('Error fetching joined challenges:', error);
+            }
             setJoinedChallenges([]);
         } finally {
             setLoading(false);
         }
-    };
+    }, [isAuthenticated, userUid]);
 
     // Fetch on mount and when auth status changes
     useEffect(() => {
         fetchJoinedChallenges();
-    }, [isAuthenticated, user]);
+    }, [fetchJoinedChallenges]);
 
     const joinChallenge = async (challengeId, location = null) => {
         try {
@@ -45,6 +50,9 @@ export const JoinedChallengesProvider = ({ children }) => {
                 `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/join`,
                 requestBody
             );
+            
+            // Invalidate joined challenges cache before refetching
+            requestCache.invalidatePattern('/api/challenges/joined');
             
             // Refresh the list after joining
             await fetchJoinedChallenges();
@@ -59,6 +67,9 @@ export const JoinedChallengesProvider = ({ children }) => {
     const leaveChallenge = async (challengeId) => {
         try {
             const response = await apiCall('post', `${process.env.NEXT_PUBLIC_API_URL}/api/challenges/${challengeId}/leave`);
+            
+            // Invalidate joined challenges cache before refetching
+            requestCache.invalidatePattern('/api/challenges/joined');
             
             // Refresh the list after leaving
             await fetchJoinedChallenges();
