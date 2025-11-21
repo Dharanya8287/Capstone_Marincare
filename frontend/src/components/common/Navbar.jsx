@@ -26,7 +26,11 @@ export default function Navbar() {
                     setProfileImage(imageUrl);
                 }
             } catch (error) {
-                console.error('Failed to fetch profile:', error);
+                if (error.isRateLimitError) {
+                    console.warn('Rate limit reached when fetching profile:', error.message);
+                } else {
+                    console.error('Failed to fetch profile:', error);
+                }
                 // Keep default empty string on error
             }
         };
