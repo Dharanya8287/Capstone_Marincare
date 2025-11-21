@@ -129,6 +129,26 @@ function ChallengeDetailsPage({ params }) {
         return () => clearInterval(intervalId);
     }, [id]);
 
+    // Refresh data when page becomes visible (user returns from upload page)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                // Page is now visible, refresh challenge data
+                refreshChallengeData();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        // Also refresh on window focus (for better UX)
+        window.addEventListener('focus', refreshChallengeData);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', refreshChallengeData);
+        };
+    }, [id]);
+
     const joined = challenge ? isJoined(challenge._id) : false;
 
     const handleJoin = async () => {
