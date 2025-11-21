@@ -272,3 +272,68 @@ export const getAchievementStats = async (req, res) => {
         res.status(500).json({ success: false, message: "Server Error" });
     }
 };
+
+// @desc    Get recent achievements (last 3-5 unlocked)
+// @route   GET /api/achievements/recent
+// @access  Private
+export const getRecentAchievements = async (req, res) => {
+    try {
+        const userId = req.user.uid;
+        const user = await User.findOne({ firebaseUid: userId });
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Get recent unlocked achievements, sorted by unlock date
+        const recentAchievements = await Achievement.find({ 
+            user: user._id, 
+            isUnlocked: true 
+        })
+        .sort({ unlockedAt: -1 })
+        .limit(5);
+
+        // Map achievements to include rarity based on tier
+        const achievementsWithRarity = recentAchievements.map(achievement => {
+            let rarity = "Common";
+            let rarityColor = "#94a3b8"; // gray
+            
+            switch (achievement.tier) {
+                case "bronze":
+                    rarity = "Common";
+                    rarityColor = "#cd7f32";
+                    break;
+                case "silver":
+                    rarity = "Rare";
+                    rarityColor = "#0ea5e9";
+                    break;
+                case "gold":
+                    rarity = "Epic";
+                    rarityColor = "#f59e0b";
+                    break;
+                case "platinum":
+                    rarity = "Legendary";
+                    rarityColor = "#8b5cf6";
+                    break;
+            }
+
+            return {
+                name: achievement.title,
+                date: achievement.unlockedAt,
+                rarity: rarity,
+                color: rarityColor,
+                icon: achievement.icon,
+                description: achievement.description,
+            };
+        });
+
+        res.json({ 
+            success: true, 
+            achievements: achievementsWithRarity,
+            hasAchievements: achievementsWithRarity.length > 0
+        });
+
+    } catch (error) {
+        console.error("Error fetching recent achievements:", error);
+        res.status(500).json({ success: false, message: "Server Error" });
+    }
+};

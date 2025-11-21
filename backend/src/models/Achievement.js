@@ -44,5 +44,6 @@ const achievementSchema = new mongoose.Schema(
 );
 
 achievementSchema.index({ user: 1, achievementType: 1 }, { unique: true });
+achievementSchema.index({ user: 1, isUnlocked: 1, unlockedAt: -1 }); // For efficient recent achievements query
 
 export default mongoose.model("Achievement", achievementSchema);

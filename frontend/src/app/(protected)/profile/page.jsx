@@ -48,30 +48,10 @@ const ProfilePage = () => {
         createdAt: null,
     });
 
-    // Local achievements data (can be synced with backend badges later)
-    const achievements = [
-        {
-            name: 'Plastic Warrior',
-            date: 'Oct 4, 2025',
-            rarity: 'Rare',
-            color: '#0ea5e9',
-            icon: 'plastic',
-        },
-        {
-            name: 'Dedicated Volunteer',
-            date: 'Oct 3, 2025',
-            rarity: 'Rare',
-            color: '#0ea5e9',
-            icon: 'volunteer',
-        },
-        {
-            name: 'Century Club',
-            date: 'Sep 28, 2025',
-            rarity: 'Uncommon',
-            color: '#0ea5e9',
-            icon: 'century',
-        },
-    ];
+    // Recent achievements state
+    const [achievements, setAchievements] = useState([]);
+    const [achievementsLoading, setAchievementsLoading] = useState(true);
+    const [hasAchievements, setHasAchievements] = useState(false);
 
     // Location autocomplete state
     const [locationOptions, setLocationOptions] = useState([]);
@@ -139,9 +119,58 @@ const ProfilePage = () => {
         }
     }
 
+    async function fetchRecentAchievements() {
+        try {
+            setAchievementsLoading(true);
+            const res = await apiCall('get', `${process.env.NEXT_PUBLIC_API_URL}/api/achievements/recent`);
+            if (res?.data) {
+                setHasAchievements(res.data.hasAchievements);
+                if (res.data.achievements && res.data.achievements.length > 0) {
+                    // Format achievements for display
+                    const formattedAchievements = res.data.achievements.map(achievement => {
+                        // Validate and format date
+                        let formattedDate = 'Recently';
+                        if (achievement.date) {
+                            try {
+                                const date = new Date(achievement.date);
+                                if (!isNaN(date.getTime())) {
+                                    formattedDate = date.toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric', 
+                                        year: 'numeric' 
+                                    });
+                                }
+                            } catch (error) {
+                                console.error('Error formatting achievement date:', error);
+                            }
+                        }
+                        
+                        return {
+                            name: achievement.name,
+                            date: formattedDate,
+                            rarity: achievement.rarity,
+                            color: achievement.color,
+                            icon: achievement.icon,
+                        };
+                    });
+                    setAchievements(formattedAchievements);
+                } else {
+                    setAchievements([]);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load recent achievements:', error);
+            setAchievements([]);
+            setHasAchievements(false);
+        } finally {
+            setAchievementsLoading(false);
+        }
+    }
+
     // Fetch user profile from backend on mount
     useEffect(() => {
         fetchProfile();
+        fetchRecentAchievements();
     }, []);
 
     // Update editProfile if userProfile changes
@@ -182,11 +211,23 @@ const ProfilePage = () => {
 
     const handleSignOut = async () => {
         try {
+            // Clear user-specific storage keys before signing out
+            const keysToRemove = ['user', 'token', 'authToken', 'userProfile', 'userData'];
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
+            
             await signOut(auth);
-            localStorage.removeItem('user');
             router.push('/landing');
         } catch (error) {
             console.error('Error signing out:', error);
+            // Even if signout fails, clear storage and redirect
+            const keysToRemove = ['user', 'token', 'authToken', 'userProfile', 'userData'];
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                sessionStorage.removeItem(key);
+            });
             router.push('/landing');
         }
     };
@@ -300,8 +341,19 @@ const ProfilePage = () => {
         }
     };
 
-    const getAchievementIcon = (iconType) => {
-        switch (iconType) {
+    const getAchievementIcon = (iconString) => {
+        // If it's an emoji string, display it directly
+        // Use a simple check for common emoji ranges instead of Unicode property escape
+        if (iconString && (
+            /[\u{1F300}-\u{1F9FF}]/u.test(iconString) || // Emoticons and symbols
+            /[\u{2600}-\u{26FF}]/u.test(iconString) ||   // Miscellaneous symbols
+            /[\u{2700}-\u{27BF}]/u.test(iconString)      // Dingbats
+        )) {
+            return <Typography sx={{ fontSize: '32px' }}>{iconString}</Typography>;
+        }
+        
+        // Legacy icon type support
+        switch (iconString) {
             case 'plastic':
                 return <Delete sx={styles.achievementIconSvg} />;
             case 'volunteer':
@@ -543,41 +595,94 @@ const ProfilePage = () => {
                             {/* Recent Achievements */}
                             <Box sx={styles.section}>
                                 <Typography sx={styles.sectionTitle}>Recent Achievements</Typography>
-                                <Box sx={styles.achievementsList}>
-                                    {achievements.map((achievement, index) => (
-                                        <Box key={index} sx={styles.achievementItem}>
-                                            <Box sx={styles.achievementLeft}>
-                                                <Box
-                                                    sx={{
-                                                        ...styles.achievementIcon,
-                                                        backgroundColor: `${achievement.color}20`,
-                                                    }}
-                                                >
-                                                    {getAchievementIcon(achievement.icon)}
+                                {achievementsLoading ? (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                        <CircularProgress size={40} />
+                                    </Box>
+                                ) : !hasAchievements || achievements.length === 0 ? (
+                                    <Box sx={{
+                                        textAlign: 'center',
+                                        py: 6,
+                                        px: 3,
+                                        backgroundColor: '#f0f9ff',
+                                        borderRadius: '16px',
+                                        border: '2px dashed #0ea5e9',
+                                    }}>
+                                        <Typography sx={{ fontSize: '4rem', mb: 2 }}>🏆</Typography>
+                                        <Typography variant="h6" sx={{ color: '#0284c7', fontWeight: 700, mb: 1 }}>
+                                            Start Your Achievement Journey!
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: '#64748b', mb: 3 }}>
+                                            Upload your first cleanup, join challenges, and unlock amazing achievements!
+                                        </Typography>
+                                        <Button 
+                                            variant="contained"
+                                            onClick={() => router.push('/challenges')}
+                                            sx={{
+                                                background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+                                                color: 'white',
+                                                px: 4,
+                                                py: 1.5,
+                                                borderRadius: '12px',
+                                                textTransform: 'none',
+                                                fontWeight: 600,
+                                                '&:hover': {
+                                                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                                                },
+                                            }}
+                                        >
+                                            Browse Challenges
+                                        </Button>
+                                    </Box>
+                                ) : (
+                                    <>
+                                        <Box sx={styles.achievementsList}>
+                                            {achievements.map((achievement, index) => (
+                                                <Box key={index} sx={styles.achievementItem}>
+                                                    <Box sx={styles.achievementLeft}>
+                                                        <Box
+                                                            sx={{
+                                                                ...styles.achievementIcon,
+                                                                backgroundColor: `${achievement.color}20`,
+                                                            }}
+                                                        >
+                                                            {getAchievementIcon(achievement.icon)}
+                                                        </Box>
+                                                        <Box>
+                                                            <Typography sx={styles.achievementName}>
+                                                                {achievement.name}
+                                                            </Typography>
+                                                            <Typography sx={styles.achievementDate}>
+                                                                {achievement.date}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box
+                                                        sx={{
+                                                            ...styles.rarityBadge,
+                                                            backgroundColor:
+                                                                achievement.rarity === 'Legendary' ? '#f3e8ff' :
+                                                                achievement.rarity === 'Epic' ? '#fef3c7' :
+                                                                achievement.rarity === 'Rare' ? '#dbeafe' : '#f1f5f9',
+                                                            color:
+                                                                achievement.rarity === 'Legendary' ? '#6b21a8' :
+                                                                achievement.rarity === 'Epic' ? '#92400e' :
+                                                                achievement.rarity === 'Rare' ? '#1e40af' : '#475569',
+                                                        }}
+                                                    >
+                                                        {achievement.rarity}
+                                                    </Box>
                                                 </Box>
-                                                <Box>
-                                                    <Typography sx={styles.achievementName}>
-                                                        {achievement.name}
-                                                    </Typography>
-                                                    <Typography sx={styles.achievementDate}>
-                                                        {achievement.date}
-                                                    </Typography>
-                                                </Box>
-                                            </Box>
-                                            <Box
-                                                sx={{
-                                                    ...styles.rarityBadge,
-                                                    backgroundColor:
-                                                        achievement.rarity === 'Rare' ? '#dbeafe' : '#fef3c7',
-                                                    color: achievement.rarity === 'Rare' ? '#1e40af' : '#92400e',
-                                                }}
-                                            >
-                                                {achievement.rarity}
-                                            </Box>
+                                            ))}
                                         </Box>
-                                    ))}
-                                </Box>
-                                <Button sx={styles.viewAllButton}>View All Achievements</Button>
+                                        <Button 
+                                            sx={styles.viewAllButton}
+                                            onClick={() => router.push('/achievements')}
+                                        >
+                                            View All Achievements
+                                        </Button>
+                                    </>
+                                )}
                             </Box>
                         </Box>
                     )}
