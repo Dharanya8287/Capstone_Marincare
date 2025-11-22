@@ -9,6 +9,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import achievementsRoutes from "./routes/achievementsRoutes.js";
 import imageRoutes from "./routes/imageRoutes.js";
 import homeRoutes from "./routes/homeRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const PORT = process.env.PORT || 5000;
 
@@ -16,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 app.use("/api", apiRateLimiter);
 
 // Register API routes
+app.use("/api/auth", authRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cleanups", cleanupRoutes);
