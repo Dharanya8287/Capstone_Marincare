@@ -7,7 +7,6 @@ npm-debug.log
 .env.test
 .git
 .gitignore
-README.md
 .DS_Store
 *.log
 coverage
