@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: waveguard-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: LOCATION_VERIFICATION_ENABLED
+        value: true
+      - key: LOCATION_MAX_DISTANCE_KM
+        value: 5
+      - key: TESTING_MODE
+        value: false
+    healthCheckPath: /health

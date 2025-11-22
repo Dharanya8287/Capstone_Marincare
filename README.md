@@ -2,6 +2,14 @@
 
 > An AI-powered Progressive Web App for shoreline cleanup management
 
+## 🚀 Want to Deploy/Host This Project?
+
+**👉 [START HERE - Complete Hosting Guide](./START_HERE.md)** 
+
+Quick deploy in 30-45 minutes with zero cost using free tiers!
+
+---
+
 ## 🚧 Under Development
 
 This project is currently under development as part of our Capstone Project.
@@ -57,7 +65,10 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 - **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - Week-by-week implementation plan
 - **[ARCHITECTURE_DIAGRAMS.md](./ARCHITECTURE_DIAGRAMS.md)** - System architecture and diagrams
 
-### 🚀 Deployment
+### 🚀 Deployment & Hosting
+- **[HOSTING_INSTRUCTIONS.md](./HOSTING_INSTRUCTIONS.md)** - ⭐ **SIMPLE STEP-BY-STEP HOSTING GUIDE** (Start here!)
+- **[QUICK_START_HOSTING.md](./QUICK_START_HOSTING.md)** - Deploy in 30 minutes
+- **[PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete deployment guide with strategies and best practices
 
 ### 🔒 Security & Authentication
@@ -69,7 +80,8 @@ WaveGuard is a mobile-first Progressive Web App designed to help volunteers part
 1. **New Team Members:** Read [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) first ⭐
 2. **Backend Developers:** [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) → [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) → [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
 3. **Frontend Developers:** [IMPLEMENTATION_STATUS.md](./IMPLEMENTATION_STATUS.md) → [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-4. **DevOps/Deployment:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for production deployment strategies
+4. **Want to Host/Deploy?** → [HOSTING_INSTRUCTIONS.md](./HOSTING_INSTRUCTIONS.md) ⭐ **Simple hosting guide**
+5. **DevOps/Deployment:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md) for detailed deployment strategies
 
 ## Links
 
