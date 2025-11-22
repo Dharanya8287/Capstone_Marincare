@@ -2,6 +2,14 @@
 
 > An AI-powered Progressive Web App for shoreline cleanup management
 
+## 🚀 Want to Deploy/Host This Project?
+
+**👉 [START HERE - Complete Hosting Guide](./START_HERE.md)** 
+
+Quick deploy in 30-45 minutes with zero cost using free tiers!
+
+---
+
 ## 🚧 Under Development
 
 This project is currently under development as part of our Capstone Project.
